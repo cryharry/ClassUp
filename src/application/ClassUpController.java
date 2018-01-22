@@ -1,7 +1,10 @@
 package application;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StringBufferInputStream;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -60,30 +63,20 @@ public class ClassUpController implements Initializable {
 	}
 
 	private void databaseBak() {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");
 		Runtime run = Runtime.getRuntime();
 		DBQue db = new DBQue();
 		String dbIp = db.getDB().get(0);
 		String dbName = db.getDB().get(1);
 		try {
-			Process pr = run.exec("cmd.exe /c sqlcmd -s "+dbIp+" -d "+dbName+" -F:\bak.sql");
+			BufferedWriter out = new BufferedWriter(new FileWriter("C:/Uni_Cool/back.sql"));
+			out.write("BACKUP DATABASE ["+dbName+"] TO DISK='C:/Uni_Cool/BACKUP/"+sdf.format(new Date())+".bak");
+			out.flush();
+			out.close();
+			
+			Process pr = run.exec("cmd.exe /c sqlcmd -s "+dbIp+" -d "+dbName+" -i:\bak.sql");
 		} catch (IOException e1) {
 			e1.printStackTrace();
-		}
-		
-		
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-mm-dd");
-		try {
-			Connection con = db.dbConn();
-			
-			Statement stmt = con.createStatement();
-			
-			String sql = "BACKUP DATABASE '"+dbName+"' TO DISK 'C:/Uni_Cool/BackUp/"+dbName+"/"+sdf.format(new Date())+".bak'";
-			System.out.println(sql);
-			Boolean backupCheck = stmt.execute(sql);
-			System.out.println(backupCheck);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		
 		/*pBar3 = new ProgressBar();
