@@ -15,96 +15,99 @@
 
 <AnchorPane prefHeight="543.0" prefWidth="697.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.ClassUpController">
    <children>
-      <TabPane fx:id="tabPane" prefHeight="543.0" prefWidth="697.0" tabClosingPolicy="UNAVAILABLE">
+      <TabPane fx:id="tabPane" prefHeight="607.0" prefWidth="771.0" tabClosingPolicy="UNAVAILABLE">
         <tabs>
-          <Tab fx:id="tab3grade" text="3학년 졸업처리">
+          <Tab fx:id="tab3grade" closable="false" text="3학년 졸업처리">
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <VBox alignment="CENTER" layoutX="211.0" layoutY="66.0" prefHeight="453.0" prefWidth="697.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <VBox alignment="CENTER" layoutX="211.0" layoutY="66.0" prefHeight="579.0" prefWidth="771.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
-                              <TableView>
+                              <TableView prefHeight="518.0" prefWidth="771.0" fx:id="xls3Table">
                                 <columns>
-                                  <TableColumn prefWidth="75.0" text="학년" />
-                                  <TableColumn prefWidth="75.0" text="반" />
-                                    <TableColumn prefWidth="75.0" text="번호" />
-                                    <TableColumn prefWidth="75.0" text="과" />
-                                    <TableColumn prefWidth="114.0" text="성명" />
-                                    <TableColumn prefWidth="142.0" text="결과" />
+                                    <TableColumn fx:id="stid3Col" prefWidth="156.0" text="바코드번호" />
+                                  <TableColumn fx:id="class3Col" minWidth="0.0" prefWidth="53.0" text="학년" />
+                                  <TableColumn fx:id="ban3Col" minWidth="2.0" prefWidth="50.0" text="반" />
+                                    <TableColumn fx:id="num3Col" minWidth="0.0" prefWidth="58.0" text="번호" />
+                                    <TableColumn fx:id="subject3Col" prefWidth="124.0" text="과" />
+                                    <TableColumn fx:id="name3Col" prefWidth="157.0" text="성명" />
+                                    <TableColumn fx:id="result3Col" prefWidth="172.0" text="결과" />
                                 </columns>
                               </TableView>
-                              <ProgressBar fx:id="pBar3" disable="true" prefHeight="20.0" prefWidth="697.0" progress="0.0" />
-                              <Button fx:id="up3grade" mnemonicParsing="false" text="졸업처리" />
+                              <ProgressBar fx:id="pBar3" prefHeight="20.0" prefWidth="612.0" progress="0.0" />
+                              <Button fx:id="up3grade" mnemonicParsing="false" onAction="#setUp3Grade" prefHeight="39.0" prefWidth="99.0" text="졸업처리" />
                            </children>
                         </VBox>
                      </children>
                   </AnchorPane>
             </content>
           </Tab>
-          <Tab fx:id="tab2grade" text="2학년 진급처리">
+          <Tab fx:id="tab2grade" closable="false" text="2학년 진급처리">
             <content>
-              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+              <AnchorPane prefHeight="537.0" prefWidth="771.0">
                      <children>
-                        <VBox alignment="CENTER" layoutX="207.0" layoutY="41.0" prefHeight="456.0" prefWidth="697.0" AnchorPane.bottomAnchor="-3.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <VBox alignment="CENTER" layoutX="207.0" layoutY="41.0" prefHeight="578.0" prefWidth="771.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
                               <HBox prefHeight="36.0" prefWidth="697.0">
                                  <children>
-                                    <TextField prefHeight="33.0" prefWidth="369.0" />
-                                    <Label prefHeight="34.0" prefWidth="77.0" text="시트선택" />
-                                    <ChoiceBox prefHeight="34.0" prefWidth="150.0" />
-                                    <Button mnemonicParsing="false" prefHeight="33.0" prefWidth="96.0" text="엑셀불러오기" fx:id="xlsLoadBtn" />
+                                    <TextField prefHeight="32.0" prefWidth="412.0" fx:id="xlsFileName" />
+                                    <Label alignment="CENTER" prefHeight="32.0" prefWidth="99.0" text="시트선택" />
+                                    <ChoiceBox fx:id="sheetChoice" prefHeight="31.0" prefWidth="165.0" />
+                                    <Button mnemonicParsing="false" prefHeight="32.0" prefWidth="96.0" text="엑셀불러오기" fx:id="xlsLoadBtn" />
                                  </children>
                               </HBox>
-                              <TableView prefHeight="384.0" prefWidth="697.0">
+                              <TableView prefHeight="498.0" prefWidth="771.0" fx:id="xls2Table">
                                 <columns>
-                                  <TableColumn prefWidth="63.0" text="이전학년" />
-                                  <TableColumn prefWidth="63.0" text="이전학반" />
-                                    <TableColumn prefWidth="66.0" text="이전번호" />
-                                    <TableColumn prefWidth="90.0" text="과" />
-                                    <TableColumn prefWidth="93.0" text="성명" />
-                                    <TableColumn prefWidth="60.0" text="진급학년" />
-                                    <TableColumn prefWidth="63.0" text="진급반" />
-                                    <TableColumn prefWidth="76.0" text="진급번호" />
-                                    <TableColumn prefWidth="120.0" text="결과" />
+                                    <TableColumn fx:id="stid2Col" prefWidth="127.0" text="바코드번호" />
+                                  <TableColumn fx:id="jun2ClassCol" prefWidth="53.0" text="이전학년" />
+                                  <TableColumn fx:id="jun2BanCol" prefWidth="53.0" text="이전학반" />
+                                    <TableColumn fx:id="jun2NumCol" prefWidth="60.0" text="이전번호" />
+                                    <TableColumn fx:id="subject2Col" prefWidth="76.0" text="과" />
+                                    <TableColumn fx:id="name2Col" prefWidth="90.0" text="성명" />
+                                    <TableColumn fx:id="up2ClassCol" prefWidth="60.0" text="진급학년" />
+                                    <TableColumn fx:id="up2BanCol" prefWidth="56.0" text="진급반" />
+                                    <TableColumn fx:id="up2NumCol" prefWidth="61.0" text="진급번호" />
+                                    <TableColumn fx:id="result2Col" prefWidth="133.0" text="결과" />
                                 </columns>
                               </TableView>
-                              <ProgressBar fx:id="pBar2" disable="true" prefHeight="20.0" prefWidth="703.0" progress="0.0" />
-                              <Button fx:id="up2grade" contentDisplay="CENTER" mnemonicParsing="false" text="진급처리 시작" textAlignment="CENTER" />
+                              <ProgressBar fx:id="pBar2" disable="true" prefHeight="20.0" prefWidth="622.0" progress="0.0" />
+                              <Button fx:id="up2grade" contentDisplay="CENTER" mnemonicParsing="false" prefHeight="38.0" prefWidth="92.0" text="진급처리 시작" textAlignment="CENTER" />
                            </children>
                         </VBox>
                      </children>
                   </AnchorPane>
             </content>
           </Tab>
-            <Tab fx:id="tab2grade" text="1학년 진급처리">
+            <Tab fx:id="tab1grade" closable="false" text="1학년 진급처리">
               <content>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                <AnchorPane>
                      <children>
-                        <VBox alignment="CENTER" prefHeight="484.0" prefWidth="697.0">
+                        <VBox alignment="CENTER" prefHeight="577.0" prefWidth="771.0">
                            <children>
                               <HBox prefHeight="36.0" prefWidth="697.0">
                                  <children>
-                                    <TextField prefHeight="33.0" prefWidth="369.0" />
-                                    <Label prefHeight="34.0" prefWidth="77.0" text="시트선택" />
-                                    <ChoiceBox prefHeight="34.0" prefWidth="150.0" />
+                                    <TextField prefHeight="33.0" prefWidth="425.0" fx:id="xlsFileName" />
+                                    <Label alignment="CENTER" prefHeight="34.0" prefWidth="92.0" text="시트선택" />
+                                    <ChoiceBox fx:id="sheetChoice" prefHeight="32.0" prefWidth="159.0" />
                                     <Button mnemonicParsing="false" prefHeight="33.0" prefWidth="96.0" text="엑셀불러오기" fx:id="xlsLoadBtn" />
                                  </children>
                               </HBox>
-                              <TableView prefHeight="384.0" prefWidth="697.0">
+                              <TableView prefHeight="485.0" prefWidth="771.0" fx:id="xls1Table">
                                  <columns>
-                                    <TableColumn prefWidth="63.0" text="이전학년" />
-                                    <TableColumn prefWidth="63.0" text="이전학반" />
-                                    <TableColumn prefWidth="66.0" text="이전번호" />
-                                    <TableColumn prefWidth="90.0" text="과" />
-                                    <TableColumn prefWidth="93.0" text="성명" />
-                                    <TableColumn prefWidth="60.0" text="진급학년" />
-                                    <TableColumn prefWidth="63.0" text="진급반" />
-                                    <TableColumn prefWidth="76.0" text="진급번호" />
-                                    <TableColumn prefWidth="120.0" text="결과" />
+                                    <TableColumn fx:id="stid1Col" prefWidth="96.0" text="바코드번호" />
+                                    <TableColumn fx:id="jun1ClassCol" prefWidth="57.0" text="이전학년" />
+                                    <TableColumn fx:id="jun1BanCol" prefWidth="63.0" text="이전학반" />
+                                    <TableColumn fx:id="jun1NumCol" prefWidth="81.0" text="이전번호" />
+                                    <TableColumn fx:id="subject1Col" prefWidth="63.0" text="과" />
+                                    <TableColumn fx:id="name1Col" prefWidth="109.0" text="성명" />
+                                    <TableColumn fx:id="up1ClassCol" prefWidth="63.0" text="진급학년" />
+                                    <TableColumn fx:id="up1BanCol" prefWidth="64.0" text="진급반" />
+                                    <TableColumn fx:id="up1NumCol" prefWidth="60.0" text="진급번호" />
+                                    <TableColumn fx:id="result1Col" prefWidth="113.0" text="결과" />
                                  </columns>
                               </TableView>
-                              <ProgressBar fx:id="pBar1" disable="true" prefHeight="20.0" prefWidth="700.0" progress="0.0" />
-                              <Button fx:id="up1grade" contentDisplay="CENTER" mnemonicParsing="false" text="진급처리 시작" textAlignment="CENTER" />
+                              <ProgressBar fx:id="pBar1" disable="true" prefHeight="20.0" prefWidth="507.0" progress="0.0" />
+                              <Button fx:id="up1grade" contentDisplay="CENTER" mnemonicParsing="false" prefHeight="36.0" prefWidth="136.0" text="진급처리 시작" textAlignment="CENTER" />
                            </children>
                         </VBox>
                      </children>

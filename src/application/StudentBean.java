@@ -9,15 +9,14 @@ public class StudentBean {
 	private IntegerProperty st_ban;
 	private IntegerProperty st_num;
 	private StringProperty st_name;
-	private IntegerProperty count;
-	
-	public IntegerProperty getCount() {
-		return count;
+	private StringProperty st_subject;
+
+	public StringProperty getSt_subject() {
+		return st_subject;
 	}
-	public void setCount(IntegerProperty count) {
-		this.count = count;
+	public void setSt_subject(StringProperty st_subject) {
+		this.st_subject = st_subject;
 	}
-	
 	public StringProperty getSt_name() {
 		return st_name;
 	}
