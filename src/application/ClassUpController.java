@@ -1,10 +1,16 @@
 package application;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -13,8 +19,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
@@ -83,15 +87,38 @@ public class ClassUpController implements Initializable {
 			tabPane.getSelectionModel().select(tab2grade);
 			setSelectTab(tab2grade);
 		} else {
-			CopyTask copyTask = new CopyTask();
-			copyTask.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED, new EventHandler<WorkerStateEvent>() {
+			Task<Void> copyTask = new Task<Void>() {
+
 				@Override
-				public void handle(WorkerStateEvent event) {
-					alert = new Alert(AlertType.INFORMATION);
-					alert.setContentText("백업완료");
-					alert.showAndWait();
+				protected Void call() throws Exception {
+					Runtime run = Runtime.getRuntime();
+					DBQue db = new DBQue();
+					String dbIp = db.getDB().get(0);
+					String dbName = db.getDB().get(1);
+					File f = new File("C:\\Uni_Cool\\bak.sql");
+					Date today = new Date();
+					SimpleDateFormat sdf = new SimpleDateFormat("YYYYMMDD");
+					
+					BufferedWriter out = new BufferedWriter(new FileWriter(f));
+					out.write("BACKUP DATABASE ["+dbName+"] TO DISK='C:\\Uni_Cool\\"+sdf.format(today)+"-"+dbName+".bak'");
+					out.flush();
+					out.close();
+					
+					Process pr = run.exec("cmd.exe /c sqlcmd -s "+dbIp+":1433 -d "+dbName+" -i \"C:\\Uni_Cool\\bak.sql\"");
+					BufferedReader br = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+					while(true) {
+						String s = br.readLine();
+						if(s==null)break;
+						System.out.println(s);
+						/*alert = new Alert(AlertType.INFORMATION);
+						alert.setContentText(s);
+						alert.showAndWait();*/
+					}
+					
+					return null;
 				}
-			});
+				
+			};
 			new Thread(copyTask).start();
 			tabPane.getSelectionModel().select(tab3grade);
 			setSelectTab(tab3grade);
@@ -175,7 +202,7 @@ public class ClassUpController implements Initializable {
 					dbQue.deleteDB(sql);
 					System.out.println(i);
 					updateProgress(i+1, stInfo.size());
-					Thread.sleep(100);
+					//Thread.sleep(100);
 				}
 				return null;
 			}
