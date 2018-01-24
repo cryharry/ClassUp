@@ -21,7 +21,7 @@
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <VBox alignment="CENTER" layoutX="211.0" layoutY="66.0" prefHeight="579.0" prefWidth="771.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <VBox fx:id="tab3Vbox" alignment="CENTER" layoutX="211.0" layoutY="66.0" prefHeight="579.0" prefWidth="771.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
                               <TableView prefHeight="518.0" prefWidth="771.0" fx:id="xls3Table">
                                 <columns>
@@ -34,8 +34,6 @@
                                     <TableColumn fx:id="result3Col" prefWidth="172.0" text="결과" />
                                 </columns>
                               </TableView>
-                              <ProgressBar fx:id="pBar3" prefHeight="20.0" prefWidth="612.0" progress="0.0" />
-                              <Button fx:id="up3grade" mnemonicParsing="false" onAction="#setUp3Grade" prefHeight="39.0" prefWidth="99.0" text="졸업처리" />
                            </children>
                         </VBox>
                      </children>

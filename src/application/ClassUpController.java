@@ -19,6 +19,8 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
@@ -31,16 +33,19 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 public class ClassUpController implements Initializable {
 	@FXML
-	public Stage primaryStage;
+	public Stage primaryStage, processStage;
 	@FXML
 	public TabPane tabPane;
 	@FXML
 	public Tab tab3grade, tab2grade, tab1grade;
+	@FXML
+	public VBox tab3Vbox;
 	@FXML
 	public TextField xlsFileName;
 	@FXML
@@ -57,7 +62,7 @@ public class ClassUpController implements Initializable {
 	public TableColumn<StudentBean, String> stid1Col, stid2Col, stid3Col, name1Col, name2Col,
 		name3Col, subject1Col, subject2Col, subject3Col, result1Col, result2Col, result3Col;
 	@FXML
-	public ProgressBar pBar3, pBar2, pBar1;
+	public ProgressBar pBar2, pBar1;
 	
 	List<String> list = new ArrayList<String>();
 	ObservableList<StudentBean> studentList = FXCollections.observableArrayList();
@@ -68,6 +73,12 @@ public class ClassUpController implements Initializable {
 	FileChooser fc;
 	File excelName;
 	Alert alert;
+	DBQue db = new DBQue();
+	String dbIp = db.getDB().get(0);
+	String dbName = db.getDB().get(1);
+	Date today = new Date();
+	SimpleDateFormat sdf = new SimpleDateFormat("YYYYMMDD");
+	CreateProcessStage cps = new CreateProcessStage();
 	
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
@@ -75,7 +86,7 @@ public class ClassUpController implements Initializable {
 		File[] f_list = path.listFiles();
 		Boolean fileCheck = false;
 		for(File file : f_list) {
-			if(file.getName().endsWith(".bak")) {
+			if(file.getName().equals(sdf.format(today)+"-"+dbName+".bak")) {
 				fileCheck = true;	
 			}
 		}
@@ -87,17 +98,16 @@ public class ClassUpController implements Initializable {
 			tabPane.getSelectionModel().select(tab2grade);
 			setSelectTab(tab2grade);
 		} else {
+			tabPane.getSelectionModel().select(tab3grade);
+			tab2grade.setDisable(true);
+			tab1grade.setDisable(true);
 			Task<Void> copyTask = new Task<Void>() {
 
 				@Override
 				protected Void call() throws Exception {
 					Runtime run = Runtime.getRuntime();
-					DBQue db = new DBQue();
-					String dbIp = db.getDB().get(0);
-					String dbName = db.getDB().get(1);
+					
 					File f = new File("C:\\Uni_Cool\\bak.sql");
-					Date today = new Date();
-					SimpleDateFormat sdf = new SimpleDateFormat("YYYYMMDD");
 					
 					BufferedWriter out = new BufferedWriter(new FileWriter(f));
 					out.write("BACKUP DATABASE ["+dbName+"] TO DISK='C:\\Uni_Cool\\"+sdf.format(today)+"-"+dbName+".bak'");
@@ -110,36 +120,51 @@ public class ClassUpController implements Initializable {
 						String s = br.readLine();
 						if(s==null)break;
 						System.out.println(s);
-						/*alert = new Alert(AlertType.INFORMATION);
-						alert.setContentText(s);
-						alert.showAndWait();*/
 					}
-					
 					return null;
 				}
 				
 			};
 			new Thread(copyTask).start();
-			tabPane.getSelectionModel().select(tab3grade);
-			setSelectTab(tab3grade);
+			copyTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+				@Override
+				public void handle(WorkerStateEvent event) {
+					alert = new Alert(AlertType.INFORMATION);
+					alert.setContentText("백업완료");
+					alert.showAndWait();
+					
+					File f = new File("C:\\Uni_Cool\\bak.sql");
+					f.delete();
+					
+					setSelectTab(tab3grade);
+				}
+			});
+			
 		}
 	}
 
 	private void setSelectTab(Tab selectTab) {
 		if(selectTab.equals(tab3grade)) {
-			tab2grade.setDisable(true);
-			tab1grade.setDisable(true);
+			up3grade = new Button();
+			up3grade.setText("졸업처리");
+			tab3Vbox.getChildren().add(up3grade);
+			up3grade.setOnAction(event->{
+				SetUp3Grade();
+			});
 		} else if(selectTab.equals(tab2grade)) {
+			tab2grade.setDisable(false);
+			tabPane.getSelectionModel().select(tab2grade);
 			tab1grade.setDisable(true);
 			tab3grade.setDisable(true);
 		} else {
+			tabPane.getSelectionModel().select(tab1grade);
 			tab3grade.setDisable(true);
 			tab2grade.setDisable(true);
 		}
 	}
 	
-	@FXML
-	public void setUp3Grade() {
+	public void SetUp3Grade() {
+		up3grade.setDisable(true);
 		sql = "SELECT st_id, class, ban, num, subject, name FROM student WHERE class=3 ORDER BY ban,num";
 		try {
 			rs = dbQue.getRS(sql);
@@ -162,9 +187,6 @@ public class ClassUpController implements Initializable {
 			result3Col.setCellValueFactory(null);
 			xls3Table.setItems(studentList);
 			
-			File f = new File("C:\\Uni_Cool\\bak.sql");
-			f.delete();
-			
 			deleteStudent(studentList);
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -173,43 +195,41 @@ public class ClassUpController implements Initializable {
 	}
 
 	public void deleteStudent(ObservableList<StudentBean> stInfo) {
-		final double barWidth = 100.0d;
-		pBar3 = new ProgressBar();
-		pBar3.setProgress(0);
-		pBar3.setPrefWidth(barWidth);
-		Task<Void> pBar3Task = new Task<Void>() {
+		cps.showStage();
+		Task<Void> delStTask = new Task<Void>() {
 
 			@Override
 			protected Void call() throws Exception {
 				for(int i=0;i<stInfo.size();i++) {
-					if(isCancelled()) {
-						break;
-					}
 					String st_id = stInfo.get(i).getSt_id().getValue();
-					sql = "DELETE FROM MERIT WHERE st_id='"+st_id+"'";
-					sql += "DELETE FROM parent_info WHERE st_id='"+st_id+"'";
-					sql += "DELETE FROM Election_CAND WHERE st_id='"+st_id+"'";
-					sql += "DELETE FROM Election_List WHERE st_id='"+st_id+"'";
-					sql += "DELETE FROM food_info WHERE st_id='"+st_id+"'";
-					sql += "DELETE FROM idcard_issue WHERE st_id='"+st_id+"'";
-					sql += "DELETE FROM mem_info WHERE st_id='"+st_id+"'";
-					sql += "DELETE FROM mem_week WHERE st_id='"+st_id+"'";
-					sql += "DELETE FROM studend_end WHERE st_id='"+st_id+"'";
-					sql += "DELETE FROM studenthistory WHERE st_id='"+st_id+"'";
-					sql += "DELETE FROM studentin WHERE st_id='"+st_id+"'";
-					sql += "DELETE FROM studentinout WHERE st_id='"+st_id+"'";
-					sql += "DELETE FROM student WHERE st_id='"+st_id+"'";
+					sql = "SELECT name FROM sys.tables WHERE name in ('merit','parent_info','election_cand'"
+							+ ",'election_list','food_info','idcard_issue','mem_info','mem_week','studend_end'"
+							+ ",'studenthistory','studentin','studentinout','student')";
+					rs = dbQue.getRS(sql);
+					sql = "";
+					while(rs.next()) {
+						sql += "DELETE FROM "+rs.getString("name")+" WHERE st_id = '"+st_id+"'";
+					}
+					System.out.println(sql);
 					dbQue.deleteDB(sql);
-					System.out.println(i);
+					String studentInfo = stInfo.get(i).getSt_class().getValue()+"학년 "+stInfo.get(i).getSt_ban().getValue()+"반 "
+							+stInfo.get(i).getSt_num().getValue()+"번호 "+stInfo.get(i).getSt_name().getValue();
+					updateMessage(studentInfo+" 삭제 중");
 					updateProgress(i+1, stInfo.size());
-					//Thread.sleep(100);
+					Thread.sleep(100);
 				}
 				return null;
 			}
 			
 		};
-		pBar3.progressProperty().unbind();
-		pBar3.progressProperty().bind(pBar3Task.progressProperty());
-		new Thread(pBar3Task).start();
+		cps.bindProperty(delStTask);
+		new Thread(delStTask).start();
+		delStTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+			@Override
+			public void handle(WorkerStateEvent event) {
+				cps.hideStage();
+				setSelectTab(tab2grade);
+			}
+		});
 	}
 }
