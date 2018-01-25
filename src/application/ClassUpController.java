@@ -3,6 +3,7 @@ package application;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -13,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -27,7 +30,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
@@ -47,7 +49,7 @@ public class ClassUpController implements Initializable {
 	@FXML
 	public VBox tab3Vbox;
 	@FXML
-	public TextField xlsFileName;
+	public TextField xls2FileName, xls1FileName;
 	@FXML
 	public Button xlsLoadBtn, up3grade, up2grade, up1grade;
 	@FXML
@@ -60,9 +62,8 @@ public class ClassUpController implements Initializable {
 		jun1ClassCol, jun1BanCol, jun1NumCol, up1ClassCol, up1BanCol, up1NumCol;
 	@FXML
 	public TableColumn<StudentBean, String> stid1Col, stid2Col, stid3Col, name1Col, name2Col,
-		name3Col, subject1Col, subject2Col, subject3Col, result1Col, result2Col, result3Col;
-	@FXML
-	public ProgressBar pBar2, pBar1;
+		name3Col, subject1Col, subject2Col, subject3Col, result1Col, result2Col;
+	
 	
 	List<String> list = new ArrayList<String>();
 	ObservableList<StudentBean> studentList = FXCollections.observableArrayList();
@@ -184,7 +185,6 @@ public class ClassUpController implements Initializable {
 			num3Col.setCellValueFactory(studentList->studentList.getValue().getSt_num().asObject());
 			subject3Col.setCellValueFactory(studentList->studentList.getValue().getSt_subject());
 			name3Col.setCellValueFactory(studentList->studentList.getValue().getSt_name());
-			result3Col.setCellValueFactory(null);
 			xls3Table.setItems(studentList);
 			
 			deleteStudent(studentList);
@@ -202,20 +202,24 @@ public class ClassUpController implements Initializable {
 			protected Void call() throws Exception {
 				for(int i=0;i<stInfo.size();i++) {
 					String st_id = stInfo.get(i).getSt_id().getValue();
-					sql = "SELECT name FROM sys.tables WHERE name in ('merit','parent_info','election_cand'"
+					String sql2 = "";
+					sql2 = "SELECT name FROM sys.tables WHERE name in ('merit','parent_info','election_cand'"
 							+ ",'election_list','food_info','idcard_issue','mem_info','mem_week','studend_end'"
 							+ ",'studenthistory','studentin','studentinout','student')";
-					rs = dbQue.getRS(sql);
+					rs = dbQue.getRS(sql2);
 					sql = "";
 					while(rs.next()) {
 						sql += "DELETE FROM "+rs.getString("name")+" WHERE st_id = '"+st_id+"'";
 					}
-					System.out.println(sql);
-					dbQue.deleteDB(sql);
+					DBQue db = new DBQue();
+					//System.out.println(sql);
+					db.deleteDB(sql);
 					String studentInfo = stInfo.get(i).getSt_class().getValue()+"학년 "+stInfo.get(i).getSt_ban().getValue()+"반 "
-							+stInfo.get(i).getSt_num().getValue()+"번호 "+stInfo.get(i).getSt_name().getValue();
-					updateMessage(studentInfo+" 삭제 중");
+							+stInfo.get(i).getSt_num().getValue()+"번 "+stInfo.get(i).getSt_name().getValue();
+					xls3Table.getItems().remove(stInfo.get(i));
+					updateMessage(studentInfo+" 졸업 처리 중~~");
 					updateProgress(i+1, stInfo.size());
+					i--;
 					Thread.sleep(100);
 				}
 				return null;
@@ -231,5 +235,30 @@ public class ClassUpController implements Initializable {
 				setSelectTab(tab2grade);
 			}
 		});
+	}
+	
+	@FXML
+	public void LoadExcel() {
+		fc = new FileChooser();
+		fc.setTitle("진급처리용 나이스 엑셀파일 불러오기");
+		FileChooser.ExtensionFilter xlsFilter = new FileChooser.ExtensionFilter("xls file(*.xls)", "*.xls");
+		fc.getExtensionFilters().add(xlsFilter);
+		excelName =  fc.showOpenDialog(primaryStage);
+		excelPath = excelName.getPath().replace("\\", "/");
+		xls2FileName.setText(excelPath);
+		xls1FileName.setText(excelPath);
+		
+		try {
+			FileInputStream fis = new FileInputStream(excelPath);
+			HSSFWorkbook xls = new HSSFWorkbook(fis);
+			int sheetSize = xls.getNumberOfSheets();
+			ObservableList<String> choiceItem = FXCollections.observableArrayList();
+			for(int i=0; i<sheetSize; i++) {
+				choiceItem.add(xls.getSheetName(i));
+			}
+			sheetChoice.setItems(choiceItem);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

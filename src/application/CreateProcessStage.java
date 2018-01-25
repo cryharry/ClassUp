@@ -16,9 +16,10 @@ public class CreateProcessStage {
 	StackPane pane = new StackPane();
 	VBox box = new VBox();
 	public void showStage() {
-		pane.setPrefSize(200, 50);
+		pane.setPrefSize(250, 50);
 		progress.setProgress(0);
-		progressStage.initStyle(StageStyle.UTILITY);
+		progressStage.initStyle(StageStyle.UNDECORATED);
+		progressStage.setAlwaysOnTop(true);
 		box.getChildren().add(message);
 		box.getChildren().add(progress);
 		pane.getChildren().add(box);

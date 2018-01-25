@@ -3,7 +3,6 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
@@ -12,6 +11,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.ComboBox?>
 
 <AnchorPane prefHeight="543.0" prefWidth="697.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.ClassUpController">
    <children>
@@ -25,13 +25,12 @@
                            <children>
                               <TableView prefHeight="518.0" prefWidth="771.0" fx:id="xls3Table">
                                 <columns>
-                                    <TableColumn fx:id="stid3Col" prefWidth="156.0" text="바코드번호" />
-                                  <TableColumn fx:id="class3Col" minWidth="0.0" prefWidth="53.0" text="학년" />
-                                  <TableColumn fx:id="ban3Col" minWidth="2.0" prefWidth="50.0" text="반" />
-                                    <TableColumn fx:id="num3Col" minWidth="0.0" prefWidth="58.0" text="번호" />
-                                    <TableColumn fx:id="subject3Col" prefWidth="124.0" text="과" />
-                                    <TableColumn fx:id="name3Col" prefWidth="157.0" text="성명" />
-                                    <TableColumn fx:id="result3Col" prefWidth="172.0" text="결과" />
+                                    <TableColumn fx:id="stid3Col" prefWidth="197.0" text="바코드번호" />
+                                  <TableColumn fx:id="class3Col" minWidth="0.0" prefWidth="54.0" text="학년" />
+                                  <TableColumn fx:id="ban3Col" minWidth="2.0" prefWidth="55.0" text="반" />
+                                    <TableColumn fx:id="num3Col" minWidth="0.0" prefWidth="71.0" text="번호" />
+                                    <TableColumn fx:id="subject3Col" prefWidth="197.0" text="과" />
+                                    <TableColumn fx:id="name3Col" prefWidth="195.0" text="성명" />
                                 </columns>
                               </TableView>
                            </children>
@@ -48,10 +47,10 @@
                            <children>
                               <HBox prefHeight="36.0" prefWidth="697.0">
                                  <children>
-                                    <TextField prefHeight="32.0" prefWidth="412.0" fx:id="xlsFileName" />
+                                    <TextField prefHeight="32.0" prefWidth="412.0" fx:id="xls2FileName" />
                                     <Label alignment="CENTER" prefHeight="32.0" prefWidth="99.0" text="시트선택" />
-                                    <ChoiceBox fx:id="sheetChoice" prefHeight="31.0" prefWidth="165.0" />
-                                    <Button mnemonicParsing="false" prefHeight="32.0" prefWidth="96.0" text="엑셀불러오기" fx:id="xlsLoadBtn" />
+                                    <ComboBox fx:id="sheet2Combo" prefHeight="31.0" prefWidth="165.0" />
+                                    <Button mnemonicParsing="false" onAction="#LoadExcel" prefHeight="32.0" prefWidth="96.0" text="엑셀불러오기" fx:id="xlsLoadBtn" />
                                  </children>
                               </HBox>
                               <TableView prefHeight="498.0" prefWidth="771.0" fx:id="xls2Table">
@@ -68,8 +67,6 @@
                                     <TableColumn fx:id="result2Col" prefWidth="133.0" text="결과" />
                                 </columns>
                               </TableView>
-                              <ProgressBar fx:id="pBar2" disable="true" prefHeight="20.0" prefWidth="622.0" progress="0.0" />
-                              <Button fx:id="up2grade" contentDisplay="CENTER" mnemonicParsing="false" prefHeight="38.0" prefWidth="92.0" text="진급처리 시작" textAlignment="CENTER" />
                            </children>
                         </VBox>
                      </children>
@@ -84,10 +81,10 @@
                            <children>
                               <HBox prefHeight="36.0" prefWidth="697.0">
                                  <children>
-                                    <TextField prefHeight="33.0" prefWidth="425.0" fx:id="xlsFileName" />
+                                    <TextField prefHeight="33.0" prefWidth="425.0" fx:id="xls1FileName" />
                                     <Label alignment="CENTER" prefHeight="34.0" prefWidth="92.0" text="시트선택" />
-                                    <ChoiceBox fx:id="sheetChoice" prefHeight="32.0" prefWidth="159.0" />
-                                    <Button mnemonicParsing="false" prefHeight="33.0" prefWidth="96.0" text="엑셀불러오기" fx:id="xlsLoadBtn" />
+                                    <ComboBox fx:id="sheet1Combo" prefHeight="32.0" prefWidth="159.0" />
+                                    <Button mnemonicParsing="false" onAction="#LoadExcel" prefHeight="33.0" prefWidth="96.0" text="엑셀불러오기" fx:id="xlsLoadBtn" />
                                  </children>
                               </HBox>
                               <TableView prefHeight="485.0" prefWidth="771.0" fx:id="xls1Table">
@@ -104,8 +101,6 @@
                                     <TableColumn fx:id="result1Col" prefWidth="113.0" text="결과" />
                                  </columns>
                               </TableView>
-                              <ProgressBar fx:id="pBar1" disable="true" prefHeight="20.0" prefWidth="507.0" progress="0.0" />
-                              <Button fx:id="up1grade" contentDisplay="CENTER" mnemonicParsing="false" prefHeight="36.0" prefWidth="136.0" text="진급처리 시작" textAlignment="CENTER" />
                            </children>
                         </VBox>
                      </children>
