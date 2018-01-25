@@ -52,6 +52,12 @@ public class DBQue {
 		pstmt.executeUpdate();
 		closeDB();
 	}
+	public int updatetDBResult(String sql) throws SQLException {
+		con = dbConn();
+		pstmt = con.prepareStatement(sql);
+		int s = pstmt.executeUpdate();
+		return s;
+	}
 	
 	public void insertDB(String sql) throws SQLException {
 		con = dbConn();

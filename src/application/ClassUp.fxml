@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
@@ -11,7 +11,6 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.ComboBox?>
 
 <AnchorPane prefHeight="543.0" prefWidth="697.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.ClassUpController">
    <children>
@@ -43,28 +42,27 @@
             <content>
               <AnchorPane prefHeight="537.0" prefWidth="771.0">
                      <children>
-                        <VBox alignment="CENTER" layoutX="207.0" layoutY="41.0" prefHeight="578.0" prefWidth="771.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <VBox fx:id="tab2VBox" alignment="CENTER" layoutX="207.0" layoutY="41.0" prefHeight="578.0" prefWidth="771.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
                               <HBox prefHeight="36.0" prefWidth="697.0">
                                  <children>
                                     <TextField prefHeight="32.0" prefWidth="412.0" fx:id="xls2FileName" />
                                     <Label alignment="CENTER" prefHeight="32.0" prefWidth="99.0" text="시트선택" />
                                     <ComboBox fx:id="sheet2Combo" prefHeight="31.0" prefWidth="165.0" />
-                                    <Button mnemonicParsing="false" onAction="#LoadExcel" prefHeight="32.0" prefWidth="96.0" text="엑셀불러오기" fx:id="xlsLoadBtn" />
+                                    <Button mnemonicParsing="false" onAction="#LoadExcel" prefHeight="32.0" prefWidth="96.0" text="엑셀불러오기" fx:id="xlsLoad2Btn" />
                                  </children>
                               </HBox>
                               <TableView prefHeight="498.0" prefWidth="771.0" fx:id="xls2Table">
                                 <columns>
-                                    <TableColumn fx:id="stid2Col" prefWidth="127.0" text="바코드번호" />
-                                  <TableColumn fx:id="jun2ClassCol" prefWidth="53.0" text="이전학년" />
-                                  <TableColumn fx:id="jun2BanCol" prefWidth="53.0" text="이전학반" />
-                                    <TableColumn fx:id="jun2NumCol" prefWidth="60.0" text="이전번호" />
+                                  <TableColumn fx:id="jun2ClassCol" prefWidth="66.0" text="이전학년" />
+                                  <TableColumn fx:id="jun2BanCol" prefWidth="63.0" text="이전학반" />
+                                    <TableColumn fx:id="jun2NumCol" prefWidth="70.0" text="이전번호" />
                                     <TableColumn fx:id="subject2Col" prefWidth="76.0" text="과" />
-                                    <TableColumn fx:id="name2Col" prefWidth="90.0" text="성명" />
-                                    <TableColumn fx:id="up2ClassCol" prefWidth="60.0" text="진급학년" />
-                                    <TableColumn fx:id="up2BanCol" prefWidth="56.0" text="진급반" />
-                                    <TableColumn fx:id="up2NumCol" prefWidth="61.0" text="진급번호" />
-                                    <TableColumn fx:id="result2Col" prefWidth="133.0" text="결과" />
+                                    <TableColumn fx:id="name2Col" prefWidth="98.0" text="성명" />
+                                    <TableColumn fx:id="up2ClassCol" prefWidth="66.0" text="진급학년" />
+                                    <TableColumn fx:id="up2BanCol" prefWidth="55.0" text="진급반" />
+                                    <TableColumn fx:id="up2NumCol" prefWidth="66.0" text="진급번호" />
+                                    <TableColumn fx:id="result2Col" prefWidth="210.0" text="결과" />
                                 </columns>
                               </TableView>
                            </children>
@@ -77,28 +75,27 @@
               <content>
                 <AnchorPane>
                      <children>
-                        <VBox alignment="CENTER" prefHeight="577.0" prefWidth="771.0">
+                        <VBox fx:id="tab1VBox" alignment="CENTER" prefHeight="577.0" prefWidth="771.0">
                            <children>
                               <HBox prefHeight="36.0" prefWidth="697.0">
                                  <children>
                                     <TextField prefHeight="33.0" prefWidth="425.0" fx:id="xls1FileName" />
                                     <Label alignment="CENTER" prefHeight="34.0" prefWidth="92.0" text="시트선택" />
                                     <ComboBox fx:id="sheet1Combo" prefHeight="32.0" prefWidth="159.0" />
-                                    <Button mnemonicParsing="false" onAction="#LoadExcel" prefHeight="33.0" prefWidth="96.0" text="엑셀불러오기" fx:id="xlsLoadBtn" />
+                                    <Button mnemonicParsing="false" onAction="#LoadExcel" prefHeight="33.0" prefWidth="96.0" text="엑셀불러오기" fx:id="xlsLoad1Btn" />
                                  </children>
                               </HBox>
                               <TableView prefHeight="485.0" prefWidth="771.0" fx:id="xls1Table">
                                  <columns>
-                                    <TableColumn fx:id="stid1Col" prefWidth="96.0" text="바코드번호" />
                                     <TableColumn fx:id="jun1ClassCol" prefWidth="57.0" text="이전학년" />
                                     <TableColumn fx:id="jun1BanCol" prefWidth="63.0" text="이전학반" />
-                                    <TableColumn fx:id="jun1NumCol" prefWidth="81.0" text="이전번호" />
-                                    <TableColumn fx:id="subject1Col" prefWidth="63.0" text="과" />
-                                    <TableColumn fx:id="name1Col" prefWidth="109.0" text="성명" />
-                                    <TableColumn fx:id="up1ClassCol" prefWidth="63.0" text="진급학년" />
-                                    <TableColumn fx:id="up1BanCol" prefWidth="64.0" text="진급반" />
-                                    <TableColumn fx:id="up1NumCol" prefWidth="60.0" text="진급번호" />
-                                    <TableColumn fx:id="result1Col" prefWidth="113.0" text="결과" />
+                                    <TableColumn fx:id="jun1NumCol" prefWidth="79.0" text="이전번호" />
+                                    <TableColumn fx:id="subject1Col" prefWidth="95.0" text="과" />
+                                    <TableColumn fx:id="name1Col" prefWidth="115.0" text="성명" />
+                                    <TableColumn fx:id="up1ClassCol" prefWidth="69.0" text="진급학년" />
+                                    <TableColumn fx:id="up1BanCol" prefWidth="59.0" text="진급반" />
+                                    <TableColumn fx:id="up1NumCol" prefWidth="64.0" text="진급번호" />
+                                    <TableColumn fx:id="result1Col" prefWidth="169.0" text="결과" />
                                  </columns>
                               </TableView>
                            </children>

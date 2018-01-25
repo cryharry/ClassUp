@@ -15,21 +15,27 @@ import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
@@ -47,26 +53,32 @@ public class ClassUpController implements Initializable {
 	@FXML
 	public Tab tab3grade, tab2grade, tab1grade;
 	@FXML
-	public VBox tab3Vbox;
+	public VBox tab3Vbox, tab2VBox, tab1VBox;
 	@FXML
 	public TextField xls2FileName, xls1FileName;
 	@FXML
-	public Button xlsLoadBtn, up3grade, up2grade, up1grade;
+	public Button xlsLoad2Btn, xlsLoad1Btn, up3grade, up2grade, up1grade;
 	@FXML
-	public ChoiceBox<String> sheetChoice;
+	public ComboBox<String> sheet1Combo, sheet2Combo;
 	@FXML
-	public TableView<StudentBean> xls3Table, xls2Table, xls1Table;
+	public TableView<StudentBean> xls3Table;
 	@FXML
-	public TableColumn<StudentBean, Integer> class3Col, ban3Col, num3Col,
-		jun2ClassCol, jun2BanCol, jun2NumCol, up2ClassCol, up2BanCol, up2NumCol,
-		jun1ClassCol, jun1BanCol, jun1NumCol, up1ClassCol, up1BanCol, up1NumCol;
+	public TableView<ExcelTableBean> xls2Table, xls1Table;
 	@FXML
-	public TableColumn<StudentBean, String> stid1Col, stid2Col, stid3Col, name1Col, name2Col,
-		name3Col, subject1Col, subject2Col, subject3Col, result1Col, result2Col;
-	
+	public TableColumn<StudentBean, Integer> class3Col, ban3Col, num3Col;
+	@FXML
+	public TableColumn<ExcelTableBean, Integer>	jun2ClassCol, jun2BanCol, jun2NumCol, up2ClassCol,
+		up2BanCol, up2NumCol, jun1ClassCol, jun1BanCol, jun1NumCol, up1ClassCol, up1BanCol, up1NumCol;
+	@FXML
+	public TableColumn<StudentBean, String> stid3Col, name3Col, subject3Col;
+	@FXML
+	public TableColumn<ExcelTableBean, String> name1Col, name2Col, subject2Col, result2Col,
+		subject1Col, result1Col;
 	
 	List<String> list = new ArrayList<String>();
 	ObservableList<StudentBean> studentList = FXCollections.observableArrayList();
+	ObservableList<ExcelTableBean> xlsList = FXCollections.observableArrayList();
+	ExcelTableBean xlsBean;
 	StudentBean stBean;
 	DBQue dbQue = new DBQue();
 	ResultSet rs;
@@ -144,7 +156,7 @@ public class ClassUpController implements Initializable {
 		}
 	}
 
-	private void setSelectTab(Tab selectTab) {
+	public void setSelectTab(Tab selectTab) {
 		if(selectTab.equals(tab3grade)) {
 			up3grade = new Button();
 			up3grade.setText("졸업처리");
@@ -158,6 +170,7 @@ public class ClassUpController implements Initializable {
 			tab1grade.setDisable(true);
 			tab3grade.setDisable(true);
 		} else {
+			tab1grade.setDisable(false);
 			tabPane.getSelectionModel().select(tab1grade);
 			tab3grade.setDisable(true);
 			tab2grade.setDisable(true);
@@ -238,27 +251,215 @@ public class ClassUpController implements Initializable {
 	}
 	
 	@FXML
-	public void LoadExcel() {
-		fc = new FileChooser();
-		fc.setTitle("진급처리용 나이스 엑셀파일 불러오기");
-		FileChooser.ExtensionFilter xlsFilter = new FileChooser.ExtensionFilter("xls file(*.xls)", "*.xls");
-		fc.getExtensionFilters().add(xlsFilter);
-		excelName =  fc.showOpenDialog(primaryStage);
-		excelPath = excelName.getPath().replace("\\", "/");
-		xls2FileName.setText(excelPath);
-		xls1FileName.setText(excelPath);
-		
-		try {
-			FileInputStream fis = new FileInputStream(excelPath);
-			HSSFWorkbook xls = new HSSFWorkbook(fis);
-			int sheetSize = xls.getNumberOfSheets();
-			ObservableList<String> choiceItem = FXCollections.observableArrayList();
-			for(int i=0; i<sheetSize; i++) {
-				choiceItem.add(xls.getSheetName(i));
+	public void LoadExcel(ActionEvent btn) {
+		if(btn.getSource()==xlsLoad2Btn) {
+			fc = new FileChooser();
+			fc.setTitle("진급처리용 나이스 엑셀파일 불러오기");
+			FileChooser.ExtensionFilter xlsFilter = new FileChooser.ExtensionFilter("xls file(*.xls)", "*.xls");
+			fc.getExtensionFilters().add(xlsFilter);
+			excelName =  fc.showOpenDialog(primaryStage);
+			excelPath = excelName.getPath().replace("\\", "/");
+			xls2FileName.setText(excelPath);
+			
+			try {
+				FileInputStream fis = new FileInputStream(excelPath);
+				HSSFWorkbook xls = new HSSFWorkbook(fis);
+				int sheetSize = xls.getNumberOfSheets();
+				ObservableList<String> combo2Item = FXCollections.observableArrayList();
+				for(int i=0; i<sheetSize; i++) {
+					combo2Item.add(xls.getSheetName(i));
+				}
+				sheet2Combo.setItems(combo2Item);
+				sheet2Combo.valueProperty().addListener(new ChangeListener<String>() {
+					@Override
+					public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+						
+						HSSFSheet sheet = xls.getSheet(newValue);
+						String data = "";
+						//행의 수
+						int rows = sheet.getPhysicalNumberOfRows();
+						//행의 수만큼 반복
+						for(int rowIndex=7; rowIndex<=rows; rowIndex++) {
+							HSSFRow row = sheet.getRow(rowIndex);
+							if(row != null) {
+								//셀의 수
+								int cells = row.getPhysicalNumberOfCells();
+								//셀의 수만큼 반복
+								for(int cellIndex = 1; cellIndex<=cells; cellIndex++) {
+									HSSFCell cell = row.getCell(cellIndex);
+									if(cellIndex==7 || cellIndex==10) {
+										continue;
+									}
+									if(cell==null) {
+										continue;
+									} else {
+										switch (cell.getCellType()) {
+										case HSSFCell.CELL_TYPE_FORMULA:
+											data += cell.getCellFormula()+",";
+											break;
+										case HSSFCell.CELL_TYPE_NUMERIC:
+											data += String.valueOf(Math.round(cell.getNumericCellValue()))+",";
+											break;
+										case HSSFCell.CELL_TYPE_STRING:
+											if(cell.getStringCellValue().equals("-")
+													||cell.getStringCellValue().contains("진급반")
+													||cell.getStringCellValue().contains("학년도")
+													||cell.getStringCellValue().contains("학년")
+													||cell.getStringCellValue().contains("학과")
+													||cell.getStringCellValue().contains("반")
+													||cell.getStringCellValue().contains("번호")
+													||cell.getStringCellValue().contains("성명")
+													||cell.getStringCellValue().contains("기준성적")
+													||cell.getStringCellValue().contains("이전학적")) {
+												continue;
+											}
+											data += cell.getStringCellValue()+",";
+											break;
+										case HSSFCell.CELL_TYPE_BLANK:
+											continue;
+										case HSSFCell.CELL_TYPE_ERROR:
+											data += cell.getErrorCellValue()+",";
+										default:
+											break;
+										}
+										if(cellIndex==16) {
+											data+="}";
+										}
+									}
+									
+								}
+								//System.out.println("-------------");
+							}
+						}
+						data = data.replace(",}", "}");
+						String[] stData = data.split("}");
+						for(int z=0;z<stData.length;z++) {
+							String[] splitData = stData[z].split(",");
+							xlsBean = new ExcelTableBean();
+							for(int y=0; y<splitData.length; y++) {
+								
+								switch (y) {
+								case 0:
+									xlsBean.setUpClass(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+									break;
+								case 1:
+									xlsBean.setSubject(new SimpleStringProperty(splitData[y]));
+									break;
+								case 2:
+									xlsBean.setUpBan(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+									break;
+								case 3:
+									xlsBean.setUpNum(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+									break;
+								case 4:
+									xlsBean.setName(new SimpleStringProperty(splitData[y]));
+									break;
+								case 5:
+									xlsBean.setJunClass(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+									break;
+								case 7:
+									xlsBean.setJunBan(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+									break;
+								case 8:
+									xlsBean.setJunNum(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+									break;
+								default:
+									break;
+								}
+							}
+							xlsList.add(xlsBean);
+						}
+						jun2ClassCol.setCellValueFactory(xlsList->xlsList.getValue().getJunClass().asObject());
+						jun2BanCol.setCellValueFactory(xlsList->xlsList.getValue().getJunBan().asObject());
+						jun2NumCol.setCellValueFactory(xlsList->xlsList.getValue().getJunNum().asObject());
+						subject2Col.setCellValueFactory(xlsList->xlsList.getValue().getSubject());
+						name2Col.setCellValueFactory(xlsList->xlsList.getValue().getName());
+						up2ClassCol.setCellValueFactory(xlsList->xlsList.getValue().getUpClass().asObject());
+						up2BanCol.setCellValueFactory(xlsList->xlsList.getValue().getUpBan().asObject());
+						up2NumCol.setCellValueFactory(xlsList->xlsList.getValue().getUpNum().asObject());
+						xls2Table.setItems(xlsList);
+						
+						up2grade = new Button("2학년 진급처리");
+						tab2VBox.getChildren().add(up2grade);
+						up2grade.setOnAction(event->{
+							updateClass(xlsList);
+						});
+					}
+				});
+			}catch (Exception e) {
+				e.printStackTrace();
+			}	
+		} else if(btn.getSource()==xlsLoad1Btn) {
+			fc = new FileChooser();
+			fc.setTitle("진급처리용 나이스 엑셀파일 불러오기");
+			FileChooser.ExtensionFilter xlsFilter = new FileChooser.ExtensionFilter("xls file(*.xls)", "*.xls");
+			fc.getExtensionFilters().add(xlsFilter);
+			excelName =  fc.showOpenDialog(primaryStage);
+			excelPath = excelName.getPath().replace("\\", "/");
+			xls1FileName.setText(excelPath);
+			
+			try {
+				FileInputStream fis = new FileInputStream(excelPath);
+				HSSFWorkbook xls = new HSSFWorkbook(fis);
+				int sheetSize = xls.getNumberOfSheets();
+				ObservableList<String> combo1Item = FXCollections.observableArrayList();
+				for(int i=0; i<sheetSize; i++) {
+					combo1Item.add(xls.getSheetName(i));
+				}
+				sheet1Combo.setItems(combo1Item);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-			sheetChoice.setItems(choiceItem);
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
+	}
+	public void updateClass(ObservableList<ExcelTableBean> xlsList) {
+		cps.showStage();
+		Task<Void> upTask = new Task<Void>() {
+
+			@Override
+			protected Void call() throws Exception {
+				for(int i=0; i<xlsList.size(); i++) {
+					int junClass = xlsList.get(i).getJunClass().asObject().getValue();
+					int junBan = xlsList.get(i).getJunBan().asObject().getValue();
+					int junNum = xlsList.get(i).getJunNum().asObject().getValue();
+					String subject = xlsList.get(i).getSubject().getValue();
+					String name = xlsList.get(i).getName().getValue();
+					int upClass = xlsList.get(i).getUpClass().asObject().getValue();
+					int upBan = xlsList.get(i).getUpBan().asObject().getValue();
+					int upNum = xlsList.get(i).getUpNum().asObject().getValue();
+					sql = "UPDATE student SET CLASS="+upClass+", BAN="+upBan+", num="+upNum
+							+" WHERE class="+junClass+" AND ban="+junBan+" AND num="+junNum
+							+" AND subject='"+subject+"' AND name='"+name+"'";
+					//System.out.println(i);
+					System.out.println(sql);
+					try {
+						int result = dbQue.updatetDBResult(sql);
+						if(result==1) {
+							xlsList.get(i).setResult(new SimpleStringProperty("성공"));
+						} else {
+							xlsList.get(i).setResult(new SimpleStringProperty("실패"));
+						}
+						result2Col.setCellValueFactory(xlsList->xlsList.getValue().getResult());
+						xls2Table.setItems(xlsList);
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+					updateProgress(i, xlsList.size());
+					Thread.sleep(100);
+				}
+				return null;
+			}
+			
+		};
+		cps.bindProperty(upTask);
+		new Thread(upTask).start();
+		upTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+			@Override
+			public void handle(WorkerStateEvent event) {
+				System.out.println("완료");
+				cps.hideStage();
+				setSelectTab(tab1grade);
+			}
+		});
 	}
 }
