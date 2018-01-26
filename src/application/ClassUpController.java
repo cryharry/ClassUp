@@ -55,11 +55,7 @@ public class ClassUpController implements Initializable {
 	@FXML
 	public VBox tab3Vbox, tab2VBox, tab1VBox;
 	@FXML
-	public TextField xls2FileName, xls1FileName;
-	@FXML
 	public Button xlsLoad2Btn, xlsLoad1Btn, up3grade, up2grade, up1grade;
-	@FXML
-	public ComboBox<String> sheet1Combo, sheet2Combo;
 	@FXML
 	public TableView<StudentBean> xls3Table;
 	@FXML
@@ -67,10 +63,14 @@ public class ClassUpController implements Initializable {
 	@FXML
 	public TableColumn<StudentBean, Integer> class3Col, ban3Col, num3Col;
 	@FXML
+	public TableColumn<StudentBean, String> stid3Col, name3Col, subject3Col;
+	@FXML
+	public TextField xls2FileName, xls1FileName;
+	@FXML
+	public ComboBox<String> sheet2Combo, sheet1Combo;
+	@FXML
 	public TableColumn<ExcelTableBean, Integer>	jun2ClassCol, jun2BanCol, jun2NumCol, up2ClassCol,
 		up2BanCol, up2NumCol, jun1ClassCol, jun1BanCol, jun1NumCol, up1ClassCol, up1BanCol, up1NumCol;
-	@FXML
-	public TableColumn<StudentBean, String> stid3Col, name3Col, subject3Col;
 	@FXML
 	public TableColumn<ExcelTableBean, String> name1Col, name2Col, subject2Col, result2Col,
 		subject1Col, result1Col;
@@ -91,7 +91,7 @@ public class ClassUpController implements Initializable {
 	String dbName = db.getDB().get(1);
 	Date today = new Date();
 	SimpleDateFormat sdf = new SimpleDateFormat("YYYYMMDD");
-	CreateProcessStage cps = new CreateProcessStage();
+	CreateProcessStage cps;
 	
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
@@ -253,22 +253,94 @@ public class ClassUpController implements Initializable {
 	@FXML
 	public void LoadExcel(ActionEvent btn) {
 		if(btn.getSource()==xlsLoad2Btn) {
-			fc = new FileChooser();
-			fc.setTitle("진급처리용 나이스 엑셀파일 불러오기");
-			FileChooser.ExtensionFilter xlsFilter = new FileChooser.ExtensionFilter("xls file(*.xls)", "*.xls");
-			fc.getExtensionFilters().add(xlsFilter);
-			excelName =  fc.showOpenDialog(primaryStage);
-			excelPath = excelName.getPath().replace("\\", "/");
-			xls2FileName.setText(excelPath);
-			
-			try {
-				FileInputStream fis = new FileInputStream(excelPath);
-				HSSFWorkbook xls = new HSSFWorkbook(fis);
-				int sheetSize = xls.getNumberOfSheets();
-				ObservableList<String> combo2Item = FXCollections.observableArrayList();
-				for(int i=0; i<sheetSize; i++) {
-					combo2Item.add(xls.getSheetName(i));
+			setCreateUpClass(2);
+		} else if(btn.getSource()==xlsLoad1Btn) {
+			setCreateUpClass(1);
+		}
+	}
+	public void updateClass(ObservableList<ExcelTableBean> xlsList, int select) {
+		cps = new CreateProcessStage();
+		cps.showStage();
+		Task<Void> upTask = new Task<Void>() {
+
+			@Override
+			protected Void call() throws Exception {
+				for(int i=0; i<xlsList.size(); i++) {
+					int junClass = xlsList.get(i).getJunClass().asObject().getValue();
+					int junBan = xlsList.get(i).getJunBan().asObject().getValue();
+					int junNum = xlsList.get(i).getJunNum().asObject().getValue();
+					String subject = xlsList.get(i).getSubject().getValue();
+					String name = xlsList.get(i).getName().getValue();
+					int upClass = xlsList.get(i).getUpClass().asObject().getValue();
+					int upBan = xlsList.get(i).getUpBan().asObject().getValue();
+					int upNum = xlsList.get(i).getUpNum().asObject().getValue();
+					sql = "UPDATE student SET CLASS="+upClass+", BAN="+upBan+", num="+upNum
+							+" WHERE class="+junClass+" AND ban="+junBan+" AND num="+junNum
+							+" AND subject='"+subject+"' AND name='"+name+"'";
+					//System.out.println(i);
+					//System.out.println(sql);
+					try {
+						int result = dbQue.updatetDBResult(sql);
+						if(result==1) {
+							xlsList.get(i).setResult(new SimpleStringProperty("성공"));
+						} else {
+							xlsList.get(i).setResult(new SimpleStringProperty("실패"));
+						}
+						if(select==2) {
+							result2Col.setCellValueFactory(xlsList->xlsList.getValue().getResult());
+							xls2Table.setItems(xlsList);
+							xls2Table.setVisible(false);
+							xls2Table.setVisible(true);
+						} else {
+							result1Col.setCellValueFactory(xlsList->xlsList.getValue().getResult());
+							xls1Table.setItems(xlsList);
+							xls1Table.setVisible(false);
+							xls1Table.setVisible(true);
+						}
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+					updateProgress(i, xlsList.size());
+					Thread.sleep(100);
 				}
+				return null;
+			}
+			
+		};
+		cps.bindProperty(upTask);
+		new Thread(upTask).start();
+		upTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+			@Override
+			public void handle(WorkerStateEvent event) {
+				System.out.println("완료");
+				cps.hideStage();
+				setSelectTab(tab1grade);
+			}
+		});
+	}
+	
+	public void setCreateUpClass(int select) {
+		fc = new FileChooser();
+		fc.setTitle("진급처리용 나이스 엑셀파일 불러오기");
+		FileChooser.ExtensionFilter xlsFilter = new FileChooser.ExtensionFilter("xls file(*.xls)", "*.xls");
+		fc.getExtensionFilters().add(xlsFilter);
+		excelName =  fc.showOpenDialog(primaryStage);
+		excelPath = excelName.getPath().replace("\\", "/");
+		if(select==2) {
+			xls2FileName.setText(excelPath);
+		} else {
+			xls1FileName.setText(excelPath);
+		}
+		
+		try {
+			FileInputStream fis = new FileInputStream(excelPath);
+			HSSFWorkbook xls = new HSSFWorkbook(fis);
+			int sheetSize = xls.getNumberOfSheets();
+			ObservableList<String> combo2Item = FXCollections.observableArrayList();
+			for(int i=0; i<sheetSize; i++) {
+				combo2Item.add(xls.getSheetName(i));
+			}
+			if(select==2) {
 				sheet2Combo.setItems(combo2Item);
 				sheet2Combo.valueProperty().addListener(new ChangeListener<String>() {
 					@Override
@@ -382,84 +454,132 @@ public class ClassUpController implements Initializable {
 						up2grade = new Button("2학년 진급처리");
 						tab2VBox.getChildren().add(up2grade);
 						up2grade.setOnAction(event->{
-							updateClass(xlsList);
+							updateClass(xlsList, 2);
 						});
 					}
 				});
-			}catch (Exception e) {
-				e.printStackTrace();
-			}	
-		} else if(btn.getSource()==xlsLoad1Btn) {
-			fc = new FileChooser();
-			fc.setTitle("진급처리용 나이스 엑셀파일 불러오기");
-			FileChooser.ExtensionFilter xlsFilter = new FileChooser.ExtensionFilter("xls file(*.xls)", "*.xls");
-			fc.getExtensionFilters().add(xlsFilter);
-			excelName =  fc.showOpenDialog(primaryStage);
-			excelPath = excelName.getPath().replace("\\", "/");
-			xls1FileName.setText(excelPath);
-			
-			try {
-				FileInputStream fis = new FileInputStream(excelPath);
-				HSSFWorkbook xls = new HSSFWorkbook(fis);
-				int sheetSize = xls.getNumberOfSheets();
-				ObservableList<String> combo1Item = FXCollections.observableArrayList();
-				for(int i=0; i<sheetSize; i++) {
-					combo1Item.add(xls.getSheetName(i));
-				}
-				sheet1Combo.setItems(combo1Item);
-			} catch (Exception e) {
-				e.printStackTrace();
+			} else {
+				sheet1Combo.setItems(combo2Item);
+				sheet1Combo.valueProperty().addListener(new ChangeListener<String>() {
+					@Override
+					public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+						
+						HSSFSheet sheet = xls.getSheet(newValue);
+						String data = "";
+						//행의 수
+						int rows = sheet.getPhysicalNumberOfRows();
+						//행의 수만큼 반복
+						for(int rowIndex=0; rowIndex<=rows; rowIndex++) {
+							HSSFRow row = sheet.getRow(rowIndex);
+							if(row != null) {
+								//셀의 수
+								int cells = row.getPhysicalNumberOfCells();
+								//셀의 수만큼 반복
+								for(int cellIndex = 0; cellIndex<=cells; cellIndex++) {
+									HSSFCell cell = row.getCell(cellIndex);
+									if(cellIndex==7 || cellIndex==10) {
+										continue;
+									}
+									if(cell==null) {
+										continue;
+									} else {
+										switch (cell.getCellType()) {
+										case HSSFCell.CELL_TYPE_FORMULA:
+											data += cell.getCellFormula()+",";
+											break;
+										case HSSFCell.CELL_TYPE_NUMERIC:
+											data += String.valueOf(Math.round(cell.getNumericCellValue()))+",";
+											break;
+										case HSSFCell.CELL_TYPE_STRING:
+											if(cell.getStringCellValue().equals("-")
+													||cell.getStringCellValue().contains("진급반")
+													||cell.getStringCellValue().contains("학년도")
+													||cell.getStringCellValue().contains("학년")
+													||cell.getStringCellValue().contains("학과")
+													||cell.getStringCellValue().contains("반")
+													||cell.getStringCellValue().contains("번호")
+													||cell.getStringCellValue().contains("성명")
+													||cell.getStringCellValue().contains("기준성적")
+													||cell.getStringCellValue().contains("이전학적")) {
+												continue;
+											}
+											data += cell.getStringCellValue()+",";
+											break;
+										case HSSFCell.CELL_TYPE_BLANK:
+											continue;
+										case HSSFCell.CELL_TYPE_ERROR:
+											data += cell.getErrorCellValue()+",";
+										default:
+											break;
+										}
+										if(cellIndex==16) {
+											data+="}";
+										}
+									}
+									
+								}
+								//System.out.println("-------------");
+							}
+						}
+						data = data.replace(",}", "}");
+						String[] stData = data.split("}");
+						for(int z=0;z<stData.length;z++) {
+							String[] splitData = stData[z].split(",");
+							xlsBean = new ExcelTableBean();
+							for(int y=0; y<splitData.length; y++) {
+								
+								switch (y) {
+								case 0:
+									xlsBean.setUpClass(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+									break;
+								case 1:
+									xlsBean.setSubject(new SimpleStringProperty(splitData[y]));
+									break;
+								case 2:
+									xlsBean.setUpBan(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+									break;
+								case 3:
+									xlsBean.setUpNum(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+									break;
+								case 4:
+									xlsBean.setName(new SimpleStringProperty(splitData[y]));
+									break;
+								case 5:
+									xlsBean.setJunClass(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+									break;
+								case 7:
+									xlsBean.setJunBan(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+									break;
+								case 8:
+									xlsBean.setJunNum(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+									break;
+								default:
+									break;
+								}
+							}
+							xlsList.add(xlsBean);
+						}
+						jun1ClassCol.setCellValueFactory(xlsList->xlsList.getValue().getJunClass().asObject());
+						jun1BanCol.setCellValueFactory(xlsList->xlsList.getValue().getJunBan().asObject());
+						jun1NumCol.setCellValueFactory(xlsList->xlsList.getValue().getJunNum().asObject());
+						subject1Col.setCellValueFactory(xlsList->xlsList.getValue().getSubject());
+						name1Col.setCellValueFactory(xlsList->xlsList.getValue().getName());
+						up1ClassCol.setCellValueFactory(xlsList->xlsList.getValue().getUpClass().asObject());
+						up1BanCol.setCellValueFactory(xlsList->xlsList.getValue().getUpBan().asObject());
+						up1NumCol.setCellValueFactory(xlsList->xlsList.getValue().getUpNum().asObject());
+						xls1Table.setItems(xlsList);
+						
+						up1grade = new Button("1학년 진급처리");
+						tab1VBox.getChildren().add(up1grade);
+						up1grade.setOnAction(event->{
+							updateClass(xlsList, 1);
+						});
+					}
+				});
 			}
+		}catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
-	public void updateClass(ObservableList<ExcelTableBean> xlsList) {
-		cps.showStage();
-		Task<Void> upTask = new Task<Void>() {
 
-			@Override
-			protected Void call() throws Exception {
-				for(int i=0; i<xlsList.size(); i++) {
-					int junClass = xlsList.get(i).getJunClass().asObject().getValue();
-					int junBan = xlsList.get(i).getJunBan().asObject().getValue();
-					int junNum = xlsList.get(i).getJunNum().asObject().getValue();
-					String subject = xlsList.get(i).getSubject().getValue();
-					String name = xlsList.get(i).getName().getValue();
-					int upClass = xlsList.get(i).getUpClass().asObject().getValue();
-					int upBan = xlsList.get(i).getUpBan().asObject().getValue();
-					int upNum = xlsList.get(i).getUpNum().asObject().getValue();
-					sql = "UPDATE student SET CLASS="+upClass+", BAN="+upBan+", num="+upNum
-							+" WHERE class="+junClass+" AND ban="+junBan+" AND num="+junNum
-							+" AND subject='"+subject+"' AND name='"+name+"'";
-					//System.out.println(i);
-					System.out.println(sql);
-					try {
-						int result = dbQue.updatetDBResult(sql);
-						if(result==1) {
-							xlsList.get(i).setResult(new SimpleStringProperty("성공"));
-						} else {
-							xlsList.get(i).setResult(new SimpleStringProperty("실패"));
-						}
-						result2Col.setCellValueFactory(xlsList->xlsList.getValue().getResult());
-						xls2Table.setItems(xlsList);
-					} catch (SQLException e) {
-						e.printStackTrace();
-					}
-					updateProgress(i, xlsList.size());
-					Thread.sleep(100);
-				}
-				return null;
-			}
-			
-		};
-		cps.bindProperty(upTask);
-		new Thread(upTask).start();
-		upTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-			@Override
-			public void handle(WorkerStateEvent event) {
-				System.out.println("완료");
-				cps.hideStage();
-				setSelectTab(tab1grade);
-			}
-		});
-	}
 }
