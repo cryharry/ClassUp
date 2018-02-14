@@ -8,10 +8,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.scene.control.Alert.AlertType;
+
 public class DBQue {
 	Connection con = null;
 	PreparedStatement pstmt;
 	ResultSet rs;
+	ShowMessage show;
+	
 	public List<String> getDB() {
 		List<String> list =  new ArrayList<String>();
 		try {
@@ -22,7 +26,7 @@ public class DBQue {
 			list.add(license);
 			br.close();
 		} catch (Exception e) {
-			e.printStackTrace();
+			show = new ShowMessage(AlertType.ERROR, "에러", e.toString());
 		}
 		return list;
 	}
@@ -35,7 +39,7 @@ public class DBQue {
 				Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 				con = DriverManager.getConnection(DBurl, user, pwd);
 			} catch (Exception e) {
-				e.printStackTrace();
+				show = new ShowMessage(AlertType.ERROR, "에러", e.toString());
 			}
 			return con;
 	}
@@ -74,8 +78,8 @@ public class DBQue {
 	}
 	
 	public void closeDB() {
-		if(rs!=null) {try {rs.close();}catch(SQLException e){}}
-		if(pstmt!=null) {try {pstmt.close();}catch(SQLException e){}}
-		if(con!=null) {try {con.close();}catch(SQLException e){}}
+		if(rs!=null) {try {rs.close();}catch(SQLException e){show = new ShowMessage(AlertType.ERROR, "에러", e.toString());}}
+		if(pstmt!=null) {try {pstmt.close();}catch(SQLException e){show = new ShowMessage(AlertType.ERROR, "에러", e.toString());}}
+		if(con!=null) {try {con.close();}catch(SQLException e){show = new ShowMessage(AlertType.ERROR, "에러", e.toString());}}
 	}
 }

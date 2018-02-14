@@ -15,10 +15,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
 
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -41,6 +42,10 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -55,19 +60,25 @@ public class ClassUpController implements Initializable {
 	@FXML
 	public VBox tab3Vbox, tab2VBox, tab1VBox;
 	@FXML
-	public Button xlsLoad2Btn, xlsLoad1Btn, up3grade, up2grade, up1grade;
+	public HBox toggleHBox, excelHBox;
+	@FXML
+	public Button xlsLoadBtn, up3grade, up2grade, up1grade;
 	@FXML
 	public TableView<StudentBean> xls3Table;
-	@FXML
-	public TableView<ExcelTableBean> xls2Table, xls1Table;
 	@FXML
 	public TableColumn<StudentBean, Integer> class3Col, ban3Col, num3Col;
 	@FXML
 	public TableColumn<StudentBean, String> stid3Col, name3Col, subject3Col;
 	@FXML
-	public TextField xls2FileName, xls1FileName;
+	public ToggleButton oldExcel, newExcel;
 	@FXML
-	public ComboBox<String> sheet2Combo, sheet1Combo;
+	public ToggleGroup excelGroup;
+	@FXML
+	public TableView<ExcelTableBean> xls2Table, xls1Table;
+	@FXML
+	public TextField xlsFileName;
+	@FXML
+	public ComboBox<String> sheetCombo;
 	@FXML
 	public TableColumn<ExcelTableBean, Integer>	jun2ClassCol, jun2BanCol, jun2NumCol, up2ClassCol,
 		up2BanCol, up2NumCol, jun1ClassCol, jun1BanCol, jun1NumCol, up1ClassCol, up1BanCol, up1NumCol;
@@ -92,18 +103,55 @@ public class ClassUpController implements Initializable {
 	Date today = new Date();
 	SimpleDateFormat sdf = new SimpleDateFormat("YYYYMMDD");
 	CreateProcessStage cps;
+	ShowMessage show;
+	Boolean fileCheck = true;
+	String excelSelect = "old";
+	ObservableList<String> comboItem = FXCollections.observableArrayList();
 	
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
-		File path = new File("C:/Uni_Cool");
-		File[] f_list = path.listFiles();
-		Boolean fileCheck = false;
-		for(File file : f_list) {
-			if(file.getName().equals(sdf.format(today)+"-"+dbName+".bak")) {
-				fileCheck = true;	
+		excelGroup = new ToggleGroup();
+		oldExcel.setToggleGroup(excelGroup);
+		oldExcel.setUserData("oldExcel");
+		oldExcel.setSelected(true);
+		newExcel.setToggleGroup(excelGroup);
+		newExcel.setUserData("newExcel");
+		
+		excelGroup.selectedToggleProperty().addListener(new ChangeListener<Toggle>() {
+
+			@Override
+			public void changed(ObservableValue<? extends Toggle> observable, Toggle oldValue, Toggle newValue) {
+				if(excelGroup.getSelectedToggle()!=null) {
+					if(excelGroup.getSelectedToggle().getUserData().equals("newExcel")) {
+						excelSelect = "new";
+					} else {
+						excelSelect = "old";
+					}
+				} else {
+					show = new ShowMessage(AlertType.ERROR, "선택", "엑셀양식이 선택되지 않았습니다.");
+				}
 			}
+			
+		});
+
+		
+		sql = "SELECT * FROM student WHERE class=3";
+		try {
+			rs = dbQue.getRS(sql);
+			if(rs.next()) {
+				fileCheck = false;
+				for(int z=0;z<toggleHBox.getChildren().size();z++) {
+					toggleHBox.getChildren().get(z).setDisable(true);
+				}
+				for(int y=0;y<excelHBox.getChildren().size();y++) {
+					excelHBox.getChildren().get(y).setDisable(true);
+				}
+			}
+		} catch (SQLException e) {
+			show = new ShowMessage(AlertType.ERROR, "에러", e.toString());
 		}
 		databaseBack(fileCheck);
+		
 	}
 	
 	private void databaseBack(Boolean fileCheck) {
@@ -142,9 +190,7 @@ public class ClassUpController implements Initializable {
 			copyTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 				@Override
 				public void handle(WorkerStateEvent event) {
-					alert = new Alert(AlertType.INFORMATION);
-					alert.setContentText("백업완료");
-					alert.showAndWait();
+					show = new ShowMessage(AlertType.INFORMATION, "백업완료", "백업완료되었습니다.");
 					
 					File f = new File("C:\\Uni_Cool\\bak.sql");
 					f.delete();
@@ -165,6 +211,12 @@ public class ClassUpController implements Initializable {
 				SetUp3Grade();
 			});
 		} else if(selectTab.equals(tab2grade)) {
+			for(int z=0;z<toggleHBox.getChildren().size();z++) {
+				toggleHBox.getChildren().get(z).setDisable(false);
+			}
+			for(int y=0;y<excelHBox.getChildren().size();y++) {
+				excelHBox.getChildren().get(y).setDisable(false);
+			}
 			tab2grade.setDisable(false);
 			tabPane.getSelectionModel().select(tab2grade);
 			tab1grade.setDisable(true);
@@ -202,12 +254,13 @@ public class ClassUpController implements Initializable {
 			
 			deleteStudent(studentList);
 		} catch (SQLException e) {
-			e.printStackTrace();
+			show = new ShowMessage(AlertType.ERROR, "에러", e.toString());
 		}
 		dbQue.closeDB();
 	}
 
 	public void deleteStudent(ObservableList<StudentBean> stInfo) {
+		cps = new CreateProcessStage();
 		cps.showStage();
 		Task<Void> delStTask = new Task<Void>() {
 
@@ -245,6 +298,7 @@ public class ClassUpController implements Initializable {
 			@Override
 			public void handle(WorkerStateEvent event) {
 				cps.hideStage();
+				fileCheck = true;
 				setSelectTab(tab2grade);
 			}
 		});
@@ -252,12 +306,17 @@ public class ClassUpController implements Initializable {
 	
 	@FXML
 	public void LoadExcel(ActionEvent btn) {
-		if(btn.getSource()==xlsLoad2Btn) {
-			setCreateUpClass(2);
-		} else if(btn.getSource()==xlsLoad1Btn) {
-			setCreateUpClass(1);
+		excelName = null;
+		excelPath = "";
+		xlsFileName.setText("");
+		xlsList.clear();
+		if(tabPane.getSelectionModel().getSelectedIndex()==1) {
+			setCreateUpClass(2, excelSelect);
+		} else if(tabPane.getSelectionModel().getSelectedIndex()==2) {
+			setCreateUpClass(1, excelSelect);
 		}
 	}
+	
 	public void updateClass(ObservableList<ExcelTableBean> xlsList, int select) {
 		cps = new CreateProcessStage();
 		cps.showStage();
@@ -277,8 +336,6 @@ public class ClassUpController implements Initializable {
 					sql = "UPDATE student SET CLASS="+upClass+", BAN="+upBan+", num="+upNum
 							+" WHERE class="+junClass+" AND ban="+junBan+" AND num="+junNum
 							+" AND subject='"+subject+"' AND name='"+name+"'";
-					//System.out.println(i);
-					//System.out.println(sql);
 					try {
 						int result = dbQue.updatetDBResult(sql);
 						if(result==1) {
@@ -298,7 +355,7 @@ public class ClassUpController implements Initializable {
 							xls1Table.setVisible(true);
 						}
 					} catch (SQLException e) {
-						e.printStackTrace();
+						show = new ShowMessage(AlertType.ERROR, "에러", e.toString());
 					}
 					updateProgress(i, xlsList.size());
 					Thread.sleep(100);
@@ -312,274 +369,233 @@ public class ClassUpController implements Initializable {
 		upTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(WorkerStateEvent event) {
-				System.out.println("완료");
+				show = new ShowMessage(AlertType.INFORMATION, "완료", "2학년 진급처리가 완료되었습니다.");
 				cps.hideStage();
 				setSelectTab(tab1grade);
 			}
 		});
 	}
+
 	
-	public void setCreateUpClass(int select) {
+	public void setCreateUpClass(int select, String excelSelect) {
 		fc = new FileChooser();
-		fc.setTitle("진급처리용 나이스 엑셀파일 불러오기");
-		FileChooser.ExtensionFilter xlsFilter = new FileChooser.ExtensionFilter("xls file(*.xls)", "*.xls");
+		fc.setTitle("진급처리용 엑셀파일 불러오기");
+		FileChooser.ExtensionFilter xlsFilter = new FileChooser.ExtensionFilter("Excel Files", "*.xls","*.xlsx");
 		fc.getExtensionFilters().add(xlsFilter);
 		excelName =  fc.showOpenDialog(primaryStage);
-		excelPath = excelName.getPath().replace("\\", "/");
-		if(select==2) {
-			xls2FileName.setText(excelPath);
-		} else {
-			xls1FileName.setText(excelPath);
-		}
+		if(excelName.getPath()!=null) {
+			excelPath = excelName.getPath().replace("\\", "/");
+			xlsFileName.setText(excelPath);
 		
-		try {
-			FileInputStream fis = new FileInputStream(excelPath);
-			HSSFWorkbook xls = new HSSFWorkbook(fis);
-			int sheetSize = xls.getNumberOfSheets();
-			ObservableList<String> combo2Item = FXCollections.observableArrayList();
-			for(int i=0; i<sheetSize; i++) {
-				combo2Item.add(xls.getSheetName(i));
+			try {
+				FileInputStream fis = new FileInputStream(new File(excelPath));
+				Workbook xls = WorkbookFactory.create(fis);
+				int sheetSize = xls.getNumberOfSheets();
+				for(int i=0; i<sheetSize; i++) {
+					comboItem.add(xls.getSheetName(i));
+				}
+				xlsList = excelTableSet(select, xls, excelSelect);
+				if(select==2) {
+					jun2ClassCol.setCellValueFactory(xlsList->xlsList.getValue().getJunClass().asObject());
+					jun2BanCol.setCellValueFactory(xlsList->xlsList.getValue().getJunBan().asObject());
+					jun2NumCol.setCellValueFactory(xlsList->xlsList.getValue().getJunNum().asObject());
+					subject2Col.setCellValueFactory(xlsList->xlsList.getValue().getSubject());
+					name2Col.setCellValueFactory(xlsList->xlsList.getValue().getName());
+					up2ClassCol.setCellValueFactory(xlsList->xlsList.getValue().getUpClass().asObject());
+					up2BanCol.setCellValueFactory(xlsList->xlsList.getValue().getUpBan().asObject());
+					up2NumCol.setCellValueFactory(xlsList->xlsList.getValue().getUpNum().asObject());
+					xls2Table.setItems(xlsList);
+							
+					up2grade = new Button("2학년 진급처리");
+					tab2VBox.getChildren().add(up2grade);
+					up2grade.setOnAction(event->{
+						updateClass(xlsList, 2);
+					});
+				} else {
+					jun1ClassCol.setCellValueFactory(xlsList->xlsList.getValue().getJunClass().asObject());
+					jun1BanCol.setCellValueFactory(xlsList->xlsList.getValue().getJunBan().asObject());
+					jun1NumCol.setCellValueFactory(xlsList->xlsList.getValue().getJunNum().asObject());
+					subject1Col.setCellValueFactory(xlsList->xlsList.getValue().getSubject());
+					name1Col.setCellValueFactory(xlsList->xlsList.getValue().getName());
+					up1ClassCol.setCellValueFactory(xlsList->xlsList.getValue().getUpClass().asObject());
+					up1BanCol.setCellValueFactory(xlsList->xlsList.getValue().getUpBan().asObject());
+					up1NumCol.setCellValueFactory(xlsList->xlsList.getValue().getUpNum().asObject());
+					xls1Table.setItems(xlsList);
+					
+					up1grade = new Button("1학년 진급처리");
+					tab1VBox.getChildren().add(up1grade);
+					up1grade.setOnAction(event->{
+						updateClass(xlsList, 1);
+					});
+				}
+			} catch (Exception e) {
+				show = new ShowMessage(AlertType.ERROR, "에러", e.toString());
 			}
-			if(select==2) {
-				sheet2Combo.setItems(combo2Item);
-				sheet2Combo.valueProperty().addListener(new ChangeListener<String>() {
-					@Override
-					public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-						
-						HSSFSheet sheet = xls.getSheet(newValue);
-						String data = "";
-						//행의 수
-						int rows = sheet.getPhysicalNumberOfRows();
-						//행의 수만큼 반복
-						for(int rowIndex=7; rowIndex<=rows; rowIndex++) {
-							HSSFRow row = sheet.getRow(rowIndex);
-							if(row != null) {
-								//셀의 수
-								int cells = row.getPhysicalNumberOfCells();
-								//셀의 수만큼 반복
-								for(int cellIndex = 1; cellIndex<=cells; cellIndex++) {
-									HSSFCell cell = row.getCell(cellIndex);
-									if(cellIndex==7 || cellIndex==10) {
-										continue;
-									}
-									if(cell==null) {
-										continue;
-									} else {
-										switch (cell.getCellType()) {
-										case HSSFCell.CELL_TYPE_FORMULA:
-											data += cell.getCellFormula()+",";
-											break;
-										case HSSFCell.CELL_TYPE_NUMERIC:
-											data += String.valueOf(Math.round(cell.getNumericCellValue()))+",";
-											break;
-										case HSSFCell.CELL_TYPE_STRING:
-											if(cell.getStringCellValue().equals("-")
-													||cell.getStringCellValue().contains("진급반")
-													||cell.getStringCellValue().contains("학년도")
-													||cell.getStringCellValue().contains("학년")
-													||cell.getStringCellValue().contains("학과")
-													||cell.getStringCellValue().contains("반")
-													||cell.getStringCellValue().contains("번호")
-													||cell.getStringCellValue().contains("성명")
-													||cell.getStringCellValue().contains("기준성적")
-													||cell.getStringCellValue().contains("이전학적")) {
-												continue;
-											}
-											data += cell.getStringCellValue()+",";
-											break;
-										case HSSFCell.CELL_TYPE_BLANK:
-											continue;
-										case HSSFCell.CELL_TYPE_ERROR:
-											data += cell.getErrorCellValue()+",";
-										default:
-											break;
-										}
-										if(cellIndex==16) {
-											data+="}";
-										}
-									}
-									
-								}
-								//System.out.println("-------------");
-							}
-						}
-						data = data.replace(",}", "}");
-						String[] stData = data.split("}");
-						for(int z=0;z<stData.length;z++) {
-							String[] splitData = stData[z].split(",");
-							xlsBean = new ExcelTableBean();
-							for(int y=0; y<splitData.length; y++) {
-								
-								switch (y) {
-								case 0:
-									xlsBean.setUpClass(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
-									break;
-								case 1:
-									xlsBean.setSubject(new SimpleStringProperty(splitData[y]));
-									break;
-								case 2:
-									xlsBean.setUpBan(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
-									break;
-								case 3:
-									xlsBean.setUpNum(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
-									break;
-								case 4:
-									xlsBean.setName(new SimpleStringProperty(splitData[y]));
-									break;
-								case 5:
-									xlsBean.setJunClass(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
-									break;
-								case 7:
-									xlsBean.setJunBan(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
-									break;
-								case 8:
-									xlsBean.setJunNum(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
-									break;
-								default:
-									break;
-								}
-							}
-							xlsList.add(xlsBean);
-						}
-						jun2ClassCol.setCellValueFactory(xlsList->xlsList.getValue().getJunClass().asObject());
-						jun2BanCol.setCellValueFactory(xlsList->xlsList.getValue().getJunBan().asObject());
-						jun2NumCol.setCellValueFactory(xlsList->xlsList.getValue().getJunNum().asObject());
-						subject2Col.setCellValueFactory(xlsList->xlsList.getValue().getSubject());
-						name2Col.setCellValueFactory(xlsList->xlsList.getValue().getName());
-						up2ClassCol.setCellValueFactory(xlsList->xlsList.getValue().getUpClass().asObject());
-						up2BanCol.setCellValueFactory(xlsList->xlsList.getValue().getUpBan().asObject());
-						up2NumCol.setCellValueFactory(xlsList->xlsList.getValue().getUpNum().asObject());
-						xls2Table.setItems(xlsList);
-						
-						up2grade = new Button("2학년 진급처리");
-						tab2VBox.getChildren().add(up2grade);
-						up2grade.setOnAction(event->{
-							updateClass(xlsList, 2);
-						});
-					}
-				});
-			} else {
-				sheet1Combo.setItems(combo2Item);
-				sheet1Combo.valueProperty().addListener(new ChangeListener<String>() {
-					@Override
-					public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-						
-						HSSFSheet sheet = xls.getSheet(newValue);
-						String data = "";
-						//행의 수
-						int rows = sheet.getPhysicalNumberOfRows();
-						//행의 수만큼 반복
-						for(int rowIndex=0; rowIndex<=rows; rowIndex++) {
-							HSSFRow row = sheet.getRow(rowIndex);
-							if(row != null) {
-								//셀의 수
-								int cells = row.getPhysicalNumberOfCells();
-								//셀의 수만큼 반복
-								for(int cellIndex = 0; cellIndex<=cells; cellIndex++) {
-									HSSFCell cell = row.getCell(cellIndex);
-									if(cellIndex==7 || cellIndex==10) {
-										continue;
-									}
-									if(cell==null) {
-										continue;
-									} else {
-										switch (cell.getCellType()) {
-										case HSSFCell.CELL_TYPE_FORMULA:
-											data += cell.getCellFormula()+",";
-											break;
-										case HSSFCell.CELL_TYPE_NUMERIC:
-											data += String.valueOf(Math.round(cell.getNumericCellValue()))+",";
-											break;
-										case HSSFCell.CELL_TYPE_STRING:
-											if(cell.getStringCellValue().equals("-")
-													||cell.getStringCellValue().contains("진급반")
-													||cell.getStringCellValue().contains("학년도")
-													||cell.getStringCellValue().contains("학년")
-													||cell.getStringCellValue().contains("학과")
-													||cell.getStringCellValue().contains("반")
-													||cell.getStringCellValue().contains("번호")
-													||cell.getStringCellValue().contains("성명")
-													||cell.getStringCellValue().contains("기준성적")
-													||cell.getStringCellValue().contains("이전학적")) {
-												continue;
-											}
-											data += cell.getStringCellValue()+",";
-											break;
-										case HSSFCell.CELL_TYPE_BLANK:
-											continue;
-										case HSSFCell.CELL_TYPE_ERROR:
-											data += cell.getErrorCellValue()+",";
-										default:
-											break;
-										}
-										if(cellIndex==16) {
-											data+="}";
-										}
-									}
-									
-								}
-								//System.out.println("-------------");
-							}
-						}
-						data = data.replace(",}", "}");
-						String[] stData = data.split("}");
-						for(int z=0;z<stData.length;z++) {
-							String[] splitData = stData[z].split(",");
-							xlsBean = new ExcelTableBean();
-							for(int y=0; y<splitData.length; y++) {
-								
-								switch (y) {
-								case 0:
-									xlsBean.setUpClass(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
-									break;
-								case 1:
-									xlsBean.setSubject(new SimpleStringProperty(splitData[y]));
-									break;
-								case 2:
-									xlsBean.setUpBan(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
-									break;
-								case 3:
-									xlsBean.setUpNum(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
-									break;
-								case 4:
-									xlsBean.setName(new SimpleStringProperty(splitData[y]));
-									break;
-								case 5:
-									xlsBean.setJunClass(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
-									break;
-								case 7:
-									xlsBean.setJunBan(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
-									break;
-								case 8:
-									xlsBean.setJunNum(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
-									break;
-								default:
-									break;
-								}
-							}
-							xlsList.add(xlsBean);
-						}
-						jun1ClassCol.setCellValueFactory(xlsList->xlsList.getValue().getJunClass().asObject());
-						jun1BanCol.setCellValueFactory(xlsList->xlsList.getValue().getJunBan().asObject());
-						jun1NumCol.setCellValueFactory(xlsList->xlsList.getValue().getJunNum().asObject());
-						subject1Col.setCellValueFactory(xlsList->xlsList.getValue().getSubject());
-						name1Col.setCellValueFactory(xlsList->xlsList.getValue().getName());
-						up1ClassCol.setCellValueFactory(xlsList->xlsList.getValue().getUpClass().asObject());
-						up1BanCol.setCellValueFactory(xlsList->xlsList.getValue().getUpBan().asObject());
-						up1NumCol.setCellValueFactory(xlsList->xlsList.getValue().getUpNum().asObject());
-						xls1Table.setItems(xlsList);
-						
-						up1grade = new Button("1학년 진급처리");
-						tab1VBox.getChildren().add(up1grade);
-						up1grade.setOnAction(event->{
-							updateClass(xlsList, 1);
-						});
-					}
-				});
-			}
-		}catch (Exception e) {
-			e.printStackTrace();
 		}
+	}
+
+
+	private ObservableList<ExcelTableBean> excelTableSet(int select, Workbook xls, String excelSelect) {
+		sheetCombo.setItems(comboItem);
+		sheetCombo.valueProperty().addListener(new ChangeListener<String>() {
+			@Override
+			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+				
+				Sheet sheet = xls.getSheet(newValue);
+				String data = "";
+				//행의 수
+				int rows = sheet.getPhysicalNumberOfRows();
+				//행의 수만큼 반복
+				int excelSelectIndex = 0;
+				int cellSelIndex = 0;
+				if(excelSelect.equals("new")) {
+					excelSelectIndex = 7;
+					cellSelIndex = 1;
+				} else {
+					excelSelectIndex = 1;
+				}
+					for(int rowIndex=excelSelectIndex; rowIndex<=rows; rowIndex++) {
+					Row row = sheet.getRow(rowIndex);
+					if(row != null) {
+						//셀의 수
+						int cells = row.getPhysicalNumberOfCells();
+						
+						//셀의 수만큼 반복
+						for(int cellIndex = cellSelIndex; cellIndex<=cells; cellIndex++) {
+							Cell cell = row.getCell(cellIndex);
+							if(excelSelect.equals("new")) {
+								if(cellIndex==7 || cellIndex==10) {
+									continue;
+								}
+							}
+							if(cell==null) {
+								continue;
+							} else {
+								switch (cell.getCellType()) {
+								case Cell.CELL_TYPE_FORMULA:
+									data += cell.getCellFormula()+",";
+									break;
+								case Cell.CELL_TYPE_NUMERIC:
+									data += String.valueOf(Math.round(cell.getNumericCellValue()))+",";
+									break;
+								case Cell.CELL_TYPE_STRING:
+									if(cell.getStringCellValue().equals("-")
+											||cell.getStringCellValue().contains("진급반")
+											||cell.getStringCellValue().contains("학년도")
+											||cell.getStringCellValue().contains("학년")
+											||cell.getStringCellValue().contains("학과")
+											||cell.getStringCellValue().contains("반")
+											||cell.getStringCellValue().contains("번호")
+											||cell.getStringCellValue().contains("성명")
+											||cell.getStringCellValue().contains("기준성적")
+											||cell.getStringCellValue().contains("이전학적")) {
+										continue;
+									} 
+									data += cell.getStringCellValue()+",";
+									break;
+								case Cell.CELL_TYPE_BLANK:
+									continue;
+								case Cell.CELL_TYPE_ERROR:
+									data += cell.getErrorCellValue()+",";
+								default:
+									break;
+								}
+								if(excelSelect.equals("new")) {
+									if(cellIndex==16) {
+										data+="}";
+									}
+								} else {
+									if(cellIndex==7) {
+										data+="}";
+									}
+								}
+							}
+							
+						}
+						//System.out.println("-------------");
+					}
+				}
+				data = data.replace(",}", "}");
+				System.out.println(data);
+				String[] stData = data.split("}");
+				for(int z=0;z<stData.length;z++) {
+					String[] splitData = stData[z].split(",");
+					xlsBean = new ExcelTableBean();
+					for(int y=0; y<splitData.length; y++) {
+						if(excelSelect.equals("new")) {
+							setExcelBean("new", splitData, y);
+						} else {
+							setExcelBean("old", splitData, y);
+						}
+					}
+					xlsList.add(xlsBean);
+				}
+			}
+
+			private void setExcelBean(String sel, String[] splitData, int y) {
+				if(sel.equals("new")) {
+					switch (y) {
+					case 0:
+						xlsBean.setUpClass(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+						break;
+					case 1:
+						xlsBean.setSubject(new SimpleStringProperty(splitData[y]));
+						break;
+					case 2:
+						xlsBean.setUpBan(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+						break;
+					case 3:
+						xlsBean.setUpNum(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+						break;
+					case 4:
+						xlsBean.setName(new SimpleStringProperty(splitData[y]));
+						break;
+					case 5:
+						xlsBean.setJunClass(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+						break;
+					case 7:
+						xlsBean.setJunBan(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+						break;
+					case 8:
+						xlsBean.setJunNum(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+						break;
+					default:
+						break;
+					}
+				} else {
+					switch (y) {
+					case 0:
+						xlsBean.setJunClass(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+						break;
+					case 1:
+						xlsBean.setJunBan(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+						break;
+					case 2:
+						xlsBean.setJunNum(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+						break;
+					case 3:
+						xlsBean.setName(new SimpleStringProperty(splitData[y]));
+						break;
+					case 4:
+						xlsBean.setUpClass(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+						break;
+					case 5:
+						xlsBean.setUpBan(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+						break;
+					case 6:
+						xlsBean.setUpNum(new SimpleIntegerProperty(Integer.parseInt(splitData[y])));
+						break;
+					case 7:
+						xlsBean.setSubject(new SimpleStringProperty(splitData[y]));
+						break;
+					default:
+						break;
+					}
+			
+				}
+			}
+		});
+		return xlsList;
 	}
 
 }
