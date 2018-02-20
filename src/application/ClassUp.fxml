@@ -63,15 +63,13 @@
                                  <children>
                                     <TableView prefHeight="494.0" prefWidth="774.0" fx:id="xls2Table">
                                       <columns>
-                                        <TableColumn fx:id="jun2ClassCol" prefWidth="66.0" text="이전학년" />
-                                        <TableColumn fx:id="jun2BanCol" prefWidth="63.0" text="이전학반" />
-                                          <TableColumn fx:id="jun2NumCol" prefWidth="70.0" text="이전번호" />
-                                          <TableColumn fx:id="subject2Col" prefWidth="76.0" text="과" />
-                                          <TableColumn fx:id="name2Col" prefWidth="98.0" text="성명" />
-                                          <TableColumn fx:id="up2ClassCol" prefWidth="66.0" text="진급학년" />
-                                          <TableColumn fx:id="up2BanCol" prefWidth="55.0" text="진급반" />
-                                          <TableColumn fx:id="up2NumCol" prefWidth="66.0" text="진급번호" />
-                                          <TableColumn fx:id="result2Col" prefWidth="210.0" text="결과" />
+                                        <TableColumn fx:id="jun2BanCol" prefWidth="63.0" />
+                                          <TableColumn fx:id="jun2NumCol" prefWidth="70.0" />
+                                          <TableColumn fx:id="subject2Col" prefWidth="76.0" />
+                                          <TableColumn fx:id="name2Col" prefWidth="98.0" />
+                                          <TableColumn fx:id="up2BanCol" prefWidth="55.0" />
+                                          <TableColumn fx:id="up2NumCol" prefWidth="66.0" />
+                                          <TableColumn fx:id="result2Col" prefWidth="210.0" />
                                       </columns>
                                     </TableView>
                                  </children>
@@ -88,15 +86,13 @@
                                  <children>
                                     <TableView prefHeight="506.0" prefWidth="771.0" fx:id="xls1Table">
                                        <columns>
-                                          <TableColumn fx:id="jun1ClassCol" prefWidth="57.0" text="이전학년" />
-                                          <TableColumn fx:id="jun1BanCol" prefWidth="63.0" text="이전학반" />
-                                          <TableColumn fx:id="jun1NumCol" prefWidth="79.0" text="이전번호" />
-                                          <TableColumn fx:id="subject1Col" prefWidth="95.0" text="과" />
-                                          <TableColumn fx:id="name1Col" prefWidth="115.0" text="성명" />
-                                          <TableColumn fx:id="up1ClassCol" prefWidth="69.0" text="진급학년" />
-                                          <TableColumn fx:id="up1BanCol" prefWidth="59.0" text="진급반" />
-                                          <TableColumn fx:id="up1NumCol" prefWidth="64.0" text="진급번호" />
-                                          <TableColumn fx:id="result1Col" prefWidth="169.0" text="결과" />
+                                          <TableColumn fx:id="jun1BanCol" prefWidth="63.0" />
+                                          <TableColumn fx:id="jun1NumCol" prefWidth="79.0" />
+                                          <TableColumn fx:id="subject1Col" prefWidth="95.0" />
+                                          <TableColumn fx:id="name1Col" prefWidth="115.0" />
+                                          <TableColumn fx:id="up1BanCol" prefWidth="59.0" />
+                                          <TableColumn fx:id="up1NumCol" prefWidth="64.0" />
+                                          <TableColumn fx:id="result1Col" prefWidth="169.0" />
                                        </columns>
                                     </TableView>
                                  </children>

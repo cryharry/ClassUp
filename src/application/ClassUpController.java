@@ -11,8 +11,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import org.apache.poi.ss.usermodel.Cell;
@@ -36,7 +38,9 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
@@ -45,6 +49,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -80,8 +85,8 @@ public class ClassUpController implements Initializable {
 	@FXML
 	public ComboBox<String> sheetCombo;
 	@FXML
-	public TableColumn<ExcelTableBean, Integer>	jun2ClassCol, jun2BanCol, jun2NumCol, up2ClassCol,
-		up2BanCol, up2NumCol, jun1ClassCol, jun1BanCol, jun1NumCol, up1ClassCol, up1BanCol, up1NumCol;
+	public TableColumn<ExcelTableBean, Integer>	jun2BanCol, jun2NumCol, 
+		up2BanCol, up2NumCol, jun1BanCol, jun1NumCol, up1BanCol, up1NumCol;
 	@FXML
 	public TableColumn<ExcelTableBean, String> name1Col, name2Col, subject2Col, result2Col,
 		subject1Col, result1Col;
@@ -396,12 +401,10 @@ public class ClassUpController implements Initializable {
 				}
 				xlsList = excelTableSet(select, xls, excelSelect);
 				if(select==2) {
-					jun2ClassCol.setCellValueFactory(xlsList->xlsList.getValue().getJunClass().asObject());
 					jun2BanCol.setCellValueFactory(xlsList->xlsList.getValue().getJunBan().asObject());
 					jun2NumCol.setCellValueFactory(xlsList->xlsList.getValue().getJunNum().asObject());
 					subject2Col.setCellValueFactory(xlsList->xlsList.getValue().getSubject());
 					name2Col.setCellValueFactory(xlsList->xlsList.getValue().getName());
-					up2ClassCol.setCellValueFactory(xlsList->xlsList.getValue().getUpClass().asObject());
 					up2BanCol.setCellValueFactory(xlsList->xlsList.getValue().getUpBan().asObject());
 					up2NumCol.setCellValueFactory(xlsList->xlsList.getValue().getUpNum().asObject());
 					xls2Table.setItems(xlsList);
@@ -412,12 +415,10 @@ public class ClassUpController implements Initializable {
 						updateClass(xlsList, 2);
 					});
 				} else {
-					jun1ClassCol.setCellValueFactory(xlsList->xlsList.getValue().getJunClass().asObject());
 					jun1BanCol.setCellValueFactory(xlsList->xlsList.getValue().getJunBan().asObject());
 					jun1NumCol.setCellValueFactory(xlsList->xlsList.getValue().getJunNum().asObject());
 					subject1Col.setCellValueFactory(xlsList->xlsList.getValue().getSubject());
 					name1Col.setCellValueFactory(xlsList->xlsList.getValue().getName());
-					up1ClassCol.setCellValueFactory(xlsList->xlsList.getValue().getUpClass().asObject());
 					up1BanCol.setCellValueFactory(xlsList->xlsList.getValue().getUpBan().asObject());
 					up1NumCol.setCellValueFactory(xlsList->xlsList.getValue().getUpNum().asObject());
 					xls1Table.setItems(xlsList);
@@ -443,8 +444,76 @@ public class ClassUpController implements Initializable {
 				
 				Sheet sheet = xls.getSheet(newValue);
 				String data = "";
+				tab2VBox.getChildren().removeAll();
+				TableView<ExcelTableBean> testTable = new TableView<ExcelTableBean>();
+				testTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+				testTable.getSelectionModel().setCellSelectionEnabled(true);
+				testTable.addEventFilter(MouseEvent.MOUSE_PRESSED, (event)-> {
+					if(event.isShortcutDown() || event.isShiftDown()) {
+						event.consume();
+					}
+				});
+				testTable.getFocusModel().focusedCellProperty().addListener((obs, odVal, newVal) -> {
+					if(newVal.getTableColumn() != null) {
+						testTable.getSelectionModel().selectRange(0, newVal.getTableColumn(), testTable.getItems().size(), newVal.getTableColumn());
+						System.out.println("Selected TableColumn: "+ newVal.getTableColumn().getText());
+						System.out.println("Selected Column Index: "+ newVal.getColumn());
+					}
+				});
+				 
+				
 				//행의 수
 				int rows = sheet.getPhysicalNumberOfRows();
+				// 헤더가져오기
+				ArrayList<String> data2 = new ArrayList<>();
+				for(int p=0;p<8;p++) {
+					Row headrRow = sheet.getRow(p);
+					if(headrRow!=null) {
+						int headerCells = headrRow.getPhysicalNumberOfCells();
+						for(int k=0; k<=headerCells; k++) {
+							Cell headerCell = headrRow.getCell(k);{
+								if(headerCell!=null) {
+									data2.add("cell style:"+headerCell.getCellStyle());
+									switch (headerCell.getCellType()) {
+									case Cell.CELL_TYPE_FORMULA:
+										continue;
+									case Cell.CELL_TYPE_NUMERIC:
+										continue;
+									case Cell.CELL_TYPE_STRING:
+										if(headerCell.getStringCellValue().contains("학년도")
+												||headerCell.getStringCellValue().contains("이전반")
+												||headerCell.getStringCellValue().contains("과")
+												||headerCell.getStringCellValue().contains("2018")) {
+											continue;
+										} else {
+											data2.add(headerCell.getStringCellValue());
+											break;
+										}
+									case Cell.CELL_TYPE_BLANK:
+										continue;
+									case Cell.CELL_TYPE_ERROR:
+										continue;
+									
+									default:
+										break;
+									}
+								}
+							}
+						}
+					}
+					TableColumn testCol[] = new TableColumn[data2.size()];
+					for(int l=0;l<data2.size();l++) {
+						if(data2.get(l).contains("진급학적")) {
+							continue;
+						}
+						testCol[l] = new TableColumn(data2.get(l));
+						testTable.getColumns().addAll(testCol[l]);
+						System.out.println(data2.get(l));
+					}
+				}
+				
+				tab2VBox.getChildren().add(testTable);
+				
 				//행의 수만큼 반복
 				int excelSelectIndex = 0;
 				int cellSelIndex = 0;
