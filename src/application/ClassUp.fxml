@@ -8,7 +8,6 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -17,12 +16,6 @@
    <children>
       <VBox prefHeight="666.0" prefWidth="774.0">
          <children>
-            <HBox fx:id="toggleHBox" alignment="CENTER" prefHeight="38.0" prefWidth="774.0">
-               <children>
-                  <ToggleButton fx:id="oldExcel" mnemonicParsing="false" text="이전 엑셀" />
-                  <ToggleButton fx:id="newExcel" mnemonicParsing="false" text="나이스 엑셀" />
-               </children>
-            </HBox>
             <HBox fx:id="excelHBox" prefHeight="44.0" prefWidth="774.0">
                <children>
                   <TextField prefHeight="32.0" prefWidth="412.0" fx:id="xlsFileName" />
@@ -59,21 +52,7 @@
                   <content>
                     <AnchorPane prefHeight="480.0" prefWidth="774.0">
                            <children>
-                              <VBox fx:id="tab2VBox" alignment="CENTER" layoutX="207.0" layoutY="41.0" prefHeight="530.0" prefWidth="774.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                 <children>
-                                    <TableView prefHeight="494.0" prefWidth="774.0" fx:id="xls2Table">
-                                      <columns>
-                                        <TableColumn fx:id="jun2BanCol" prefWidth="63.0" />
-                                          <TableColumn fx:id="jun2NumCol" prefWidth="70.0" />
-                                          <TableColumn fx:id="subject2Col" prefWidth="76.0" />
-                                          <TableColumn fx:id="name2Col" prefWidth="98.0" />
-                                          <TableColumn fx:id="up2BanCol" prefWidth="55.0" />
-                                          <TableColumn fx:id="up2NumCol" prefWidth="66.0" />
-                                          <TableColumn fx:id="result2Col" prefWidth="210.0" />
-                                      </columns>
-                                    </TableView>
-                                 </children>
-                              </VBox>
+                              <VBox fx:id="tab2VBox" alignment="CENTER" layoutX="207.0" layoutY="41.0" prefHeight="530.0" prefWidth="774.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                            </children>
                         </AnchorPane>
                   </content>
@@ -82,21 +61,7 @@
                     <content>
                       <AnchorPane>
                            <children>
-                              <VBox fx:id="tab1VBox" alignment="CENTER" prefHeight="530.0" prefWidth="771.0">
-                                 <children>
-                                    <TableView prefHeight="506.0" prefWidth="771.0" fx:id="xls1Table">
-                                       <columns>
-                                          <TableColumn fx:id="jun1BanCol" prefWidth="63.0" />
-                                          <TableColumn fx:id="jun1NumCol" prefWidth="79.0" />
-                                          <TableColumn fx:id="subject1Col" prefWidth="95.0" />
-                                          <TableColumn fx:id="name1Col" prefWidth="115.0" />
-                                          <TableColumn fx:id="up1BanCol" prefWidth="59.0" />
-                                          <TableColumn fx:id="up1NumCol" prefWidth="64.0" />
-                                          <TableColumn fx:id="result1Col" prefWidth="169.0" />
-                                       </columns>
-                                    </TableView>
-                                 </children>
-                              </VBox>
+                              <VBox fx:id="tab1VBox" alignment="CENTER" prefHeight="530.0" prefWidth="771.0" />
                            </children>
                         </AnchorPane>
                     </content>

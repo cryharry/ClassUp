@@ -11,10 +11,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.ResourceBundle;
 
 import org.apache.poi.ss.usermodel.Cell;
@@ -22,6 +20,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.ss.util.CellRangeAddress;
 
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -38,7 +37,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Tab;
@@ -65,9 +63,9 @@ public class ClassUpController implements Initializable {
 	@FXML
 	public VBox tab3Vbox, tab2VBox, tab1VBox;
 	@FXML
-	public HBox toggleHBox, excelHBox;
+	public HBox excelHBox;
 	@FXML
-	public Button xlsLoadBtn, up3grade, up2grade, up1grade;
+	public Button xlsLoadBtn, up3grade;
 	@FXML
 	public TableView<StudentBean> xls3Table;
 	@FXML
@@ -79,17 +77,9 @@ public class ClassUpController implements Initializable {
 	@FXML
 	public ToggleGroup excelGroup;
 	@FXML
-	public TableView<ExcelTableBean> xls2Table, xls1Table;
-	@FXML
 	public TextField xlsFileName;
 	@FXML
 	public ComboBox<String> sheetCombo;
-	@FXML
-	public TableColumn<ExcelTableBean, Integer>	jun2BanCol, jun2NumCol, 
-		up2BanCol, up2NumCol, jun1BanCol, jun1NumCol, up1BanCol, up1NumCol;
-	@FXML
-	public TableColumn<ExcelTableBean, String> name1Col, name2Col, subject2Col, result2Col,
-		subject1Col, result1Col;
 	
 	List<String> list = new ArrayList<String>();
 	ObservableList<StudentBean> studentList = FXCollections.observableArrayList();
@@ -115,42 +105,11 @@ public class ClassUpController implements Initializable {
 	
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
-		excelGroup = new ToggleGroup();
-		oldExcel.setToggleGroup(excelGroup);
-		oldExcel.setUserData("oldExcel");
-		oldExcel.setSelected(true);
-		newExcel.setToggleGroup(excelGroup);
-		newExcel.setUserData("newExcel");
-		
-		excelGroup.selectedToggleProperty().addListener(new ChangeListener<Toggle>() {
-
-			@Override
-			public void changed(ObservableValue<? extends Toggle> observable, Toggle oldValue, Toggle newValue) {
-				if(excelGroup.getSelectedToggle()!=null) {
-					if(excelGroup.getSelectedToggle().getUserData().equals("newExcel")) {
-						excelSelect = "new";
-					} else {
-						excelSelect = "old";
-					}
-				} else {
-					show = new ShowMessage(AlertType.ERROR, "선택", "엑셀양식이 선택되지 않았습니다.");
-				}
-			}
-			
-		});
-
-		
 		sql = "SELECT * FROM student WHERE class=3";
 		try {
 			rs = dbQue.getRS(sql);
 			if(rs.next()) {
 				fileCheck = false;
-				for(int z=0;z<toggleHBox.getChildren().size();z++) {
-					toggleHBox.getChildren().get(z).setDisable(true);
-				}
-				for(int y=0;y<excelHBox.getChildren().size();y++) {
-					excelHBox.getChildren().get(y).setDisable(true);
-				}
 			}
 		} catch (SQLException e) {
 			show = new ShowMessage(AlertType.ERROR, "에러", e.toString());
@@ -216,12 +175,6 @@ public class ClassUpController implements Initializable {
 				SetUp3Grade();
 			});
 		} else if(selectTab.equals(tab2grade)) {
-			for(int z=0;z<toggleHBox.getChildren().size();z++) {
-				toggleHBox.getChildren().get(z).setDisable(false);
-			}
-			for(int y=0;y<excelHBox.getChildren().size();y++) {
-				excelHBox.getChildren().get(y).setDisable(false);
-			}
 			tab2grade.setDisable(false);
 			tabPane.getSelectionModel().select(tab2grade);
 			tab1grade.setDisable(true);
@@ -349,15 +302,9 @@ public class ClassUpController implements Initializable {
 							xlsList.get(i).setResult(new SimpleStringProperty("실패"));
 						}
 						if(select==2) {
-							result2Col.setCellValueFactory(xlsList->xlsList.getValue().getResult());
-							xls2Table.setItems(xlsList);
-							xls2Table.setVisible(false);
-							xls2Table.setVisible(true);
+							//xls2Table.setItems(xlsList);
 						} else {
-							result1Col.setCellValueFactory(xlsList->xlsList.getValue().getResult());
-							xls1Table.setItems(xlsList);
-							xls1Table.setVisible(false);
-							xls1Table.setVisible(true);
+							//xls1Table.setItems(xlsList);
 						}
 					} catch (SQLException e) {
 						show = new ShowMessage(AlertType.ERROR, "에러", e.toString());
@@ -400,6 +347,7 @@ public class ClassUpController implements Initializable {
 					comboItem.add(xls.getSheetName(i));
 				}
 				xlsList = excelTableSet(select, xls, excelSelect);
+				/*
 				if(select==2) {
 					jun2BanCol.setCellValueFactory(xlsList->xlsList.getValue().getJunBan().asObject());
 					jun2NumCol.setCellValueFactory(xlsList->xlsList.getValue().getJunNum().asObject());
@@ -429,6 +377,7 @@ public class ClassUpController implements Initializable {
 						updateClass(xlsList, 1);
 					});
 				}
+				*/
 			} catch (Exception e) {
 				show = new ShowMessage(AlertType.ERROR, "에러", e.toString());
 			}
@@ -466,6 +415,7 @@ public class ClassUpController implements Initializable {
 				int rows = sheet.getPhysicalNumberOfRows();
 				// 헤더가져오기
 				ArrayList<String> data2 = new ArrayList<>();
+				outer:
 				for(int p=0;p<8;p++) {
 					Row headrRow = sheet.getRow(p);
 					if(headrRow!=null) {
@@ -473,7 +423,18 @@ public class ClassUpController implements Initializable {
 						for(int k=0; k<=headerCells; k++) {
 							Cell headerCell = headrRow.getCell(k);{
 								if(headerCell!=null) {
-									data2.add("cell style:"+headerCell.getCellStyle());
+									for(int q=0;q<sheet.getNumMergedRegions();q++) {
+										CellRangeAddress region = sheet.getMergedRegion(q);
+										
+										int regionCell = region.getFirstColumn();
+										int regionRow = region.getFirstRow();
+										
+										if(regionRow == headerCell.getRowIndex() && regionRow == headerCell.getColumnIndex()) {
+											//System.out.println("RegionCell : "+ regionCell + ", RegionRow : " + regionRow);
+											//System.out.println("Region : "+sheet.getRow(regionRow).getCell(regionCell).getStringCellValue());
+											continue outer;
+										}
+									}
 									switch (headerCell.getCellType()) {
 									case Cell.CELL_TYPE_FORMULA:
 										continue;
@@ -508,12 +469,11 @@ public class ClassUpController implements Initializable {
 						}
 						testCol[l] = new TableColumn(data2.get(l));
 						testTable.getColumns().addAll(testCol[l]);
-						System.out.println(data2.get(l));
 					}
 				}
 				
 				tab2VBox.getChildren().add(testTable);
-				
+				/*
 				//행의 수만큼 반복
 				int excelSelectIndex = 0;
 				int cellSelIndex = 0;
@@ -598,7 +558,7 @@ public class ClassUpController implements Initializable {
 						}
 					}
 					xlsList.add(xlsBean);
-				}
+				}*/
 			}
 
 			private void setExcelBean(String sel, String[] splitData, int y) {
