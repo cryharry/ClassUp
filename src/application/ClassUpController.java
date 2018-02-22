@@ -102,6 +102,7 @@ public class ClassUpController implements Initializable {
 	Boolean fileCheck = true;
 	String excelSelect = "old";
 	ObservableList<String> comboItem = FXCollections.observableArrayList();
+	TableView<ExcelTableBean> testTable = new TableView<ExcelTableBean>();
 	
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
@@ -264,6 +265,8 @@ public class ClassUpController implements Initializable {
 	
 	@FXML
 	public void LoadExcel(ActionEvent btn) {
+		tab2VBox.getChildren().clear();
+		sheetCombo.getItems().clear();
 		excelName = null;
 		excelPath = "";
 		xlsFileName.setText("");
@@ -383,7 +386,68 @@ public class ClassUpController implements Initializable {
 			}
 		}
 	}
-
+	private void getHeader(Sheet sheet) {
+		ArrayList<String> data2 = new ArrayList<>();
+		outer:
+		for(int p=0;p<8;p++) {
+			Row headrRow = sheet.getRow(p);
+			if(headrRow!=null) {
+				int headerCells = headrRow.getPhysicalNumberOfCells();
+				for(int k=0; k<=headerCells; k++) {
+					Cell headerCell = headrRow.getCell(k);{
+						if(headerCell!=null) {
+							for(int q=0;q<sheet.getNumMergedRegions();q++) {
+								CellRangeAddress region = sheet.getMergedRegion(q);
+								
+								int regionCell = region.getFirstColumn();
+								int regionRow = region.getFirstRow();
+								
+								if(regionRow == headerCell.getRowIndex() && regionRow == headerCell.getColumnIndex()) {
+									//System.out.println("RegionCell : "+ regionCell + ", RegionRow : " + regionRow);
+									//System.out.println("Region : "+sheet.getRow(regionRow).getCell(regionCell).getStringCellValue());
+									continue outer;
+								}
+							}
+							switch (headerCell.getCellType()) {
+							case Cell.CELL_TYPE_FORMULA:
+								continue;
+							case Cell.CELL_TYPE_NUMERIC:
+								continue;
+							case Cell.CELL_TYPE_STRING:
+								if(headerCell.getStringCellValue().contains("학년도")
+										||headerCell.getStringCellValue().contains("이전반")
+										||headerCell.getStringCellValue().contains("과")
+										||headerCell.getStringCellValue().contains("2018")) {
+									continue;
+								} else {
+									data2.add(headerCell.getStringCellValue());
+									if(headerCell.getStringCellValue().contains("학년")) {
+										System.out.println("Header RowNum: "+headerCell.getRowIndex());
+									}
+									break;
+								}
+							case Cell.CELL_TYPE_BLANK:
+								continue;
+							case Cell.CELL_TYPE_ERROR:
+								continue;
+							
+							default:
+								break;
+							}
+						}
+					}
+				}
+			}
+			TableColumn testCol[] = new TableColumn[data2.size()];
+			for(int l=0;l<data2.size();l++) {
+				if(data2.get(l).contains("진급학적")) {
+					continue;
+				}
+				testCol[l] = new TableColumn(data2.get(l));
+				testTable.getColumns().addAll(testCol[l]);
+			}
+		}
+	}
 
 	private ObservableList<ExcelTableBean> excelTableSet(int select, Workbook xls, String excelSelect) {
 		sheetCombo.setItems(comboItem);
@@ -394,7 +458,6 @@ public class ClassUpController implements Initializable {
 				Sheet sheet = xls.getSheet(newValue);
 				String data = "";
 				tab2VBox.getChildren().removeAll();
-				TableView<ExcelTableBean> testTable = new TableView<ExcelTableBean>();
 				testTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 				testTable.getSelectionModel().setCellSelectionEnabled(true);
 				testTable.addEventFilter(MouseEvent.MOUSE_PRESSED, (event)-> {
@@ -414,63 +477,8 @@ public class ClassUpController implements Initializable {
 				//행의 수
 				int rows = sheet.getPhysicalNumberOfRows();
 				// 헤더가져오기
-				ArrayList<String> data2 = new ArrayList<>();
-				outer:
-				for(int p=0;p<8;p++) {
-					Row headrRow = sheet.getRow(p);
-					if(headrRow!=null) {
-						int headerCells = headrRow.getPhysicalNumberOfCells();
-						for(int k=0; k<=headerCells; k++) {
-							Cell headerCell = headrRow.getCell(k);{
-								if(headerCell!=null) {
-									for(int q=0;q<sheet.getNumMergedRegions();q++) {
-										CellRangeAddress region = sheet.getMergedRegion(q);
-										
-										int regionCell = region.getFirstColumn();
-										int regionRow = region.getFirstRow();
-										
-										if(regionRow == headerCell.getRowIndex() && regionRow == headerCell.getColumnIndex()) {
-											//System.out.println("RegionCell : "+ regionCell + ", RegionRow : " + regionRow);
-											//System.out.println("Region : "+sheet.getRow(regionRow).getCell(regionCell).getStringCellValue());
-											continue outer;
-										}
-									}
-									switch (headerCell.getCellType()) {
-									case Cell.CELL_TYPE_FORMULA:
-										continue;
-									case Cell.CELL_TYPE_NUMERIC:
-										continue;
-									case Cell.CELL_TYPE_STRING:
-										if(headerCell.getStringCellValue().contains("학년도")
-												||headerCell.getStringCellValue().contains("이전반")
-												||headerCell.getStringCellValue().contains("과")
-												||headerCell.getStringCellValue().contains("2018")) {
-											continue;
-										} else {
-											data2.add(headerCell.getStringCellValue());
-											break;
-										}
-									case Cell.CELL_TYPE_BLANK:
-										continue;
-									case Cell.CELL_TYPE_ERROR:
-										continue;
-									
-									default:
-										break;
-									}
-								}
-							}
-						}
-					}
-					TableColumn testCol[] = new TableColumn[data2.size()];
-					for(int l=0;l<data2.size();l++) {
-						if(data2.get(l).contains("진급학적")) {
-							continue;
-						}
-						testCol[l] = new TableColumn(data2.get(l));
-						testTable.getColumns().addAll(testCol[l]);
-					}
-				}
+				getHeader(sheet);
+				
 				
 				tab2VBox.getChildren().add(testTable);
 				/*
