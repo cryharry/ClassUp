@@ -2,6 +2,7 @@ package application;
 
 import javafx.concurrent.Task;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.StackPane;
@@ -12,6 +13,7 @@ import javafx.stage.StageStyle;
 public class CreateProcessStage {
 	ProgressBar progress = new ProgressBar();
 	Label message = new Label();
+	Button cancelBtn = new Button("취소");
 	Stage progressStage = new Stage();
 	StackPane pane = new StackPane();
 	VBox box = new VBox();
@@ -22,6 +24,7 @@ public class CreateProcessStage {
 		progressStage.setAlwaysOnTop(true);
 		box.getChildren().add(message);
 		box.getChildren().add(progress);
+		box.getChildren().add(cancelBtn);
 		pane.getChildren().add(box);
 		progressStage.setScene(new Scene(pane));
 		progressStage.show();

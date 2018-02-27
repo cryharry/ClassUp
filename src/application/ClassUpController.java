@@ -99,7 +99,7 @@ public class ClassUpController implements Initializable {
 	SimpleDateFormat sdf = new SimpleDateFormat("YYYYMMDD");
 	CreateProcessStage cps;
 	ShowMessage show;
-	Boolean fileCheck = true;
+	boolean fileCheck = true;
 	String excelSelect = "old";
 	ObservableList<String> comboItem = FXCollections.observableArrayList();
 	TableView<ExcelTableBean> testTable = new TableView<ExcelTableBean>();
@@ -119,7 +119,7 @@ public class ClassUpController implements Initializable {
 		
 	}
 	
-	private void databaseBack(Boolean fileCheck) {
+	private void databaseBack(boolean fileCheck) {
 		if(fileCheck) {
 			tabPane.getSelectionModel().select(tab2grade);
 			setSelectTab(tab2grade);
@@ -251,6 +251,14 @@ public class ClassUpController implements Initializable {
 			}
 			
 		};
+		cps.cancelBtn.setOnMouseClicked(new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(MouseEvent event) {
+				delStTask.cancel(true);
+				cps.hideStage();
+				up3grade.setDisable(false);
+			}
+		});
 		cps.bindProperty(delStTask);
 		new Thread(delStTask).start();
 		delStTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
@@ -390,11 +398,11 @@ public class ClassUpController implements Initializable {
 		ArrayList<String> data2 = new ArrayList<>();
 		outer:
 		for(int p=0;p<8;p++) {
-			Row headrRow = sheet.getRow(p);
-			if(headrRow!=null) {
-				int headerCells = headrRow.getPhysicalNumberOfCells();
+			Row headerRow = sheet.getRow(p);
+			if(headerRow!=null) {
+				int headerCells = headerRow.getPhysicalNumberOfCells();
 				for(int k=0; k<=headerCells; k++) {
-					Cell headerCell = headrRow.getCell(k);{
+					Cell headerCell = headerRow.getCell(k);{
 						if(headerCell!=null) {
 							for(int q=0;q<sheet.getNumMergedRegions();q++) {
 								CellRangeAddress region = sheet.getMergedRegion(q);
