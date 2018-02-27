@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.ResourceBundle;
 
 import org.apache.poi.ss.usermodel.Cell;
@@ -29,12 +28,9 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -44,9 +40,6 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Toggle;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -55,56 +48,50 @@ import javafx.stage.Stage;
 
 public class ClassUpController implements Initializable {
 	@FXML
-	public Stage primaryStage, processStage;
+	public Stage primaryStage;
+    @FXML
+    public TabPane tabPane;
 	@FXML
-	public TabPane tabPane;
-	@FXML
-	public Tab tab3grade, tab2grade, tab1grade;
-	@FXML
-	public VBox tab3Vbox, tab2VBox, tab1VBox;
+	private Tab tab3grade, tab2grade, tab1grade;
+    @FXML
+    public VBox tab3Vbox, tab2VBox, tab1VBox;
 	@FXML
 	public HBox excelHBox;
 	@FXML
 	public Button xlsLoadBtn, up3grade;
 	@FXML
-	public TableView<StudentBean> xls3Table;
+	private TableView<StudentBean> xls3Table;
 	@FXML
-	public TableColumn<StudentBean, Integer> class3Col, ban3Col, num3Col;
+	private TableColumn<StudentBean, Integer> class3Col, ban3Col, num3Col;
 	@FXML
-	public TableColumn<StudentBean, String> stid3Col, name3Col, subject3Col;
+	private TableColumn<StudentBean, String> stid3Col, name3Col, subject3Col;
 	@FXML
-	public ToggleButton oldExcel, newExcel;
+	private TextField xlsFileName;
 	@FXML
-	public ToggleGroup excelGroup;
-	@FXML
-	public TextField xlsFileName;
-	@FXML
-	public ComboBox<String> sheetCombo;
-	
-	List<String> list = new ArrayList<String>();
-	ObservableList<StudentBean> studentList = FXCollections.observableArrayList();
-	ObservableList<ExcelTableBean> xlsList = FXCollections.observableArrayList();
-	ExcelTableBean xlsBean;
-	StudentBean stBean;
-	DBQue dbQue = new DBQue();
-	ResultSet rs;
-	String sql, excelPath;
-	FileChooser fc;
-	File excelName;
-	Alert alert;
-	DBQue db = new DBQue();
-	String dbIp = db.getDB().get(0);
-	String dbName = db.getDB().get(1);
-	Date today = new Date();
-	SimpleDateFormat sdf = new SimpleDateFormat("YYYYMMDD");
-	CreateProcessStage cps;
-	ShowMessage show;
+	private ComboBox<String> sheetCombo;
+
+	private ObservableList<StudentBean> studentList = FXCollections.observableArrayList();
+	private ObservableList<ExcelTableBean> xlsList = FXCollections.observableArrayList();
+	private ExcelTableBean xlsBean;
+    public StudentBean stBean;
+	private ResultSet rs;
+	private String sql, excelPath;
+	private FileChooser fc;
+	private File excelName;
+    private DBQue dbQue = new DBQue();
+	private DBQue db = new DBQue();
+	private String dbIp = db.getDB().get(0);
+	private String dbName = db.getDB().get(1);
+    private Date today = new Date();
+	private SimpleDateFormat sdf = new SimpleDateFormat("YYYYMMDD");
+	private CreateProcessStage cps;
 	boolean fileCheck = true;
-	String excelSelect = "old";
-	ObservableList<String> comboItem = FXCollections.observableArrayList();
-	TableView<ExcelTableBean> testTable = new TableView<ExcelTableBean>();
-	
-	@Override
+	private String excelSelect = "old";
+	private ObservableList<String> comboItem = FXCollections.observableArrayList();
+	private TableView<ExcelTableBean> testTable = new TableView<ExcelTableBean>();
+    private ShowMessage show;
+
+    @Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
 		sql = "SELECT * FROM student WHERE class=3";
 		try {
@@ -152,22 +139,19 @@ public class ClassUpController implements Initializable {
 				
 			};
 			new Thread(copyTask).start();
-			copyTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-				@Override
-				public void handle(WorkerStateEvent event) {
-					show = new ShowMessage(AlertType.INFORMATION, "백업완료", "백업완료되었습니다.");
-					
-					File f = new File("C:\\Uni_Cool\\bak.sql");
-					f.delete();
-					
-					setSelectTab(tab3grade);
-				}
-			});
+			copyTask.setOnSucceeded(event -> {
+                show = new ShowMessage(AlertType.INFORMATION, "백업완료", "백업완료되었습니다.");
+
+                File f = new File("C:\\Uni_Cool\\bak.sql");
+                f.delete();
+
+                setSelectTab(tab3grade);
+            });
 			
 		}
 	}
 
-	public void setSelectTab(Tab selectTab) {
+	private void setSelectTab(Tab selectTab) {
 		if(selectTab.equals(tab3grade)) {
 			up3grade = new Button();
 			up3grade.setText("졸업처리");
@@ -188,7 +172,7 @@ public class ClassUpController implements Initializable {
 		}
 	}
 	
-	public void SetUp3Grade() {
+	private void SetUp3Grade() {
 		up3grade.setDisable(true);
 		sql = "SELECT st_id, class, ban, num, subject, name FROM student WHERE class=3 ORDER BY ban,num";
 		try {
@@ -218,7 +202,7 @@ public class ClassUpController implements Initializable {
 		dbQue.closeDB();
 	}
 
-	public void deleteStudent(ObservableList<StudentBean> stInfo) {
+	private void deleteStudent(ObservableList<StudentBean> stInfo) {
 		cps = new CreateProcessStage();
 		cps.showStage();
 		Task<Void> delStTask = new Task<Void>() {
@@ -227,7 +211,7 @@ public class ClassUpController implements Initializable {
 			protected Void call() throws Exception {
 				for(int i=0;i<stInfo.size();i++) {
 					String st_id = stInfo.get(i).getSt_id().getValue();
-					String sql2 = "";
+					String sql2;
 					sql2 = "SELECT name FROM sys.tables WHERE name in ('merit','parent_info','election_cand'"
 							+ ",'election_list','food_info','idcard_issue','mem_info','mem_week','studend_end'"
 							+ ",'studenthistory','studentin','studentinout','student')";
@@ -251,28 +235,22 @@ public class ClassUpController implements Initializable {
 			}
 			
 		};
-		cps.cancelBtn.setOnMouseClicked(new EventHandler<MouseEvent>() {
-			@Override
-			public void handle(MouseEvent event) {
-				delStTask.cancel(true);
-				cps.hideStage();
-				up3grade.setDisable(false);
-			}
-		});
+		cps.cancelBtn.setOnMouseClicked(event -> {
+            delStTask.cancel(true);
+            cps.hideStage();
+            up3grade.setDisable(false);
+        });
 		cps.bindProperty(delStTask);
 		new Thread(delStTask).start();
-		delStTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-			@Override
-			public void handle(WorkerStateEvent event) {
-				cps.hideStage();
-				fileCheck = true;
-				setSelectTab(tab2grade);
-			}
-		});
+		delStTask.setOnSucceeded(event -> {
+            cps.hideStage();
+            fileCheck = true;
+            setSelectTab(tab2grade);
+        });
 	}
 	
 	@FXML
-	public void LoadExcel(ActionEvent btn) {
+    public void LoadExcel(ActionEvent btn) {
 		tab2VBox.getChildren().clear();
 		sheetCombo.getItems().clear();
 		excelName = null;
@@ -286,7 +264,7 @@ public class ClassUpController implements Initializable {
 		}
 	}
 	
-	public void updateClass(ObservableList<ExcelTableBean> xlsList, int select) {
+	private void updateClass(ObservableList<ExcelTableBean> xlsList, int select) {
 		cps = new CreateProcessStage();
 		cps.showStage();
 		Task<Void> upTask = new Task<Void>() {
@@ -329,18 +307,15 @@ public class ClassUpController implements Initializable {
 		};
 		cps.bindProperty(upTask);
 		new Thread(upTask).start();
-		upTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-			@Override
-			public void handle(WorkerStateEvent event) {
-				show = new ShowMessage(AlertType.INFORMATION, "완료", "2학년 진급처리가 완료되었습니다.");
-				cps.hideStage();
-				setSelectTab(tab1grade);
-			}
-		});
+		upTask.setOnSucceeded(event -> {
+            show = new ShowMessage(AlertType.INFORMATION, "완료", "2학년 진급처리가 완료되었습니다.");
+            cps.hideStage();
+            setSelectTab(tab1grade);
+        });
 	}
 
 	
-	public void setCreateUpClass(int select, String excelSelect) {
+	private void setCreateUpClass(int select, String excelSelect) {
 		fc = new FileChooser();
 		fc.setTitle("진급처리용 엑셀파일 불러오기");
 		FileChooser.ExtensionFilter xlsFilter = new FileChooser.ExtensionFilter("Excel Files", "*.xls","*.xlsx");
@@ -406,8 +381,8 @@ public class ClassUpController implements Initializable {
 						if(headerCell!=null) {
 							for(int q=0;q<sheet.getNumMergedRegions();q++) {
 								CellRangeAddress region = sheet.getMergedRegion(q);
-								
-								int regionCell = region.getFirstColumn();
+
+								//int regionCell = region.getFirstColumn();
 								int regionRow = region.getFirstRow();
 								
 								if(regionRow == headerCell.getRowIndex() && regionRow == headerCell.getColumnIndex()) {
