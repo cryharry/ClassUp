@@ -1,1 +1,0 @@
-BACKUP DATABASE 'test_h' TO DISK ''
